@@ -214,7 +214,7 @@ h1{font:800 clamp(30px,8vw,44px)/1.05 Inter,sans-serif;letter-spacing:-.03em;mar
 <div id="hub" class="ov hide">
  <div id="hRoom"></div>
  <div class="hubw">
-  <div class="ph"><b>🏚️ Esconderijo</b></div>
+  <div class="ph"><b>🏚️ Esconderijo</b><span style="display:flex;gap:6px"><button class="sbtn" id="hExp">📤 Exportar</button><button class="sbtn" id="hImp">📥 Importar</button></span></div>
   <div id="hStats" style="font-size:12px;opacity:.75;margin-top:-6px"></div>
   <div class="sec">Equipamento</div>
   <div id="hEq" class="gr"></div>
@@ -2564,6 +2564,8 @@ function xOpen(mode){xMode=mode;$('xfer').classList.remove('hide');const a=$('xA
  else{$('xT').textContent='📥 Importar progresso';$('xGo').textContent='Carregar progresso';$('xGo').classList.remove('hide');a.readOnly=false;
   $('xD').innerHTML='Cola aqui o código que exportaste. <b>Substitui</b> o progresso que tens neste sítio.';$('xGo').dataset.c='';}}
 $('expB').onclick=()=>{audioInit();sfx('ui');xOpen('exp');};
+$('hExp').onclick=async()=>{sfx('ui');await saveGame();xOpen('exp');};
+$('hImp').onclick=()=>{sfx('ui');xOpen('imp');};
 $('impB').onclick=()=>{audioInit();sfx('ui');xOpen('imp');};
 $('xX').onclick=()=>$('xfer').classList.add('hide');
 $('xGo').onclick=async()=>{const a=$('xA'),b=$('xGo');
@@ -2573,7 +2575,7 @@ $('xGo').onclick=async()=>{const a=$('xA'),b=$('xGo');
  if(bestSave&&b.dataset.c!=='1'){b.dataset.c='1';b.textContent='Tens a certeza? Toca outra vez';return;}
  sv.at=Date.now();bestSave=sv;const json=JSON.stringify(sv);try{localStorage.setItem(KEY,json);}catch(e){}
  if(DB&&UID){try{await DB.doc('data/users/'+UID+'/save').set({json,at:sv.at});}catch(e){}}
- $('xfer').classList.add('hide');showStart(false);const st=sv.prof.stats||{};sfx('rare');
+ $('xfer').classList.add('hide');if(state==='hub'){PROF=cleanProf(sv.prof);renderHub();}else showStart(false);const st=sv.prof.stats||{};sfx('rare');
  toast(`✅ Progresso carregado: ${sv.prof.stash.filter(Boolean).length} itens no armazém · ${st.extr||0} extrações`);};
 // ---------- app instalável (PWA) ----------
 {let dp=null;const inApp=(typeof matchMedia==='function'&&matchMedia('(display-mode: fullscreen),(display-mode: standalone)').matches)||navigator.standalone;
