@@ -189,16 +189,9 @@ h1{font:800 clamp(30px,8vw,44px)/1.05 Inter,sans-serif;letter-spacing:-.03em;mar
   <button class="big hide" id="cont">Continuar</button><br>
   <button class="big" id="play">Novo jogo</button>
   <button class="big hide" id="instApp" style="background:#2f8f4a;color:#fff">📲 Instalar app</button>
-  <div style="margin-top:14px;display:flex;gap:8px;justify-content:center"><button class="sbtn" id="expB">📤 Exportar progresso</button><button class="sbtn" id="impB">📥 Importar progresso</button></div>
   <div id="instTip" class="hide" style="margin-top:8px;font-size:12px;opacity:.75">No Chrome: menu ⋮ → <b>Instalar app</b> (ou "Adicionar ao ecrã principal")</div>
 </div></div>
 
-<div id="xfer" class="ov hide" style="z-index:30"><div class="panel" style="width:min(460px,100%)">
-  <div class="ph"><b id="xT"></b><button class="xb" id="xX">✕</button></div>
-  <div id="xD" style="font-size:13px;opacity:.8;margin:4px 0 8px"></div>
-  <textarea id="xA" spellcheck="false" style="width:100%;height:140px;border-radius:12px;background:#0d0e10;color:#cfe;border:1px solid var(--ln);font:11px monospace;padding:8px;word-break:break-all"></textarea>
-  <button class="big" id="xGo" style="width:100%"></button>
-</div></div>
 <div id="over" class="ov hide"><div class="panel">
   <h1>Morreste</h1>
   <div id="ovT"></div>
@@ -214,7 +207,7 @@ h1{font:800 clamp(30px,8vw,44px)/1.05 Inter,sans-serif;letter-spacing:-.03em;mar
 <div id="hub" class="ov hide">
  <div id="hRoom"></div>
  <div class="hubw">
-  <div class="ph"><b>🏚️ Esconderijo</b><span style="display:flex;gap:6px"><button class="sbtn" id="hExp">📤 Exportar</button><button class="sbtn" id="hImp">📥 Importar</button></span></div>
+  <div class="ph"><b>🏚️ Esconderijo</b></div>
   <div id="hStats" style="font-size:12px;opacity:.75;margin-top:-6px"></div>
   <div class="sec">Equipamento</div>
   <div id="hEq" class="gr"></div>
@@ -2546,37 +2539,6 @@ function loop(now){
 requestAnimationFrame(loop);
 initSave();
 
-// ---------- exportar / importar progresso ----------
-async function packSave(o){const txt=JSON.stringify(o);
- try{if(typeof CompressionStream==='function'){const cs=new Blob([txt]).stream().pipeThrough(new CompressionStream('gzip'));const buf=new Uint8Array(await new Response(cs).arrayBuffer());
-   let b='';for(let i=0;i<buf.length;i+=8192)b+=String.fromCharCode.apply(null,buf.subarray(i,i+8192));return'SVIO1:'+btoa(b);}}catch(e){}
- return'SVIO0:'+btoa(unescape(encodeURIComponent(txt)));}
-async function unpackSave(code){code=code.replace(/\s+/g,'');const m=code.match(/^SVIO([01]):(.+)$/);if(!m)throw 0;
- const bin=atob(m[2]);if(m[1]==='0')return JSON.parse(decodeURIComponent(escape(bin)));
- const u=new Uint8Array(bin.length);for(let i=0;i<bin.length;i++)u[i]=bin.charCodeAt(i);
- const ds=new Blob([u]).stream().pipeThrough(new DecompressionStream('gzip'));return JSON.parse(await new Response(ds).text());}
-let xMode='';
-function xOpen(mode){xMode=mode;$('xfer').classList.remove('hide');const a=$('xA');a.value='';
- if(mode==='exp'){$('xT').textContent='📤 Exportar progresso';$('xGo').textContent='📋 Copiar código';a.readOnly=true;
-  if(!bestSave){$('xD').textContent='Ainda não tens nenhum jogo guardado.';$('xGo').classList.add('hide');return;}$('xGo').classList.remove('hide');
-  $('xD').innerHTML='Copia este código e cola-o em <b>📥 Importar progresso</b> no outro sítio onde jogas (app ou Claude).'+(bestSave.raid?' <br>⚠️ Estás a meio de uma incursão: ela também vai no código.':'');
-  a.value='A preparar…';packSave(bestSave).then(c=>{a.value=c;});}
- else{$('xT').textContent='📥 Importar progresso';$('xGo').textContent='Carregar progresso';$('xGo').classList.remove('hide');a.readOnly=false;
-  $('xD').innerHTML='Cola aqui o código que exportaste. <b>Substitui</b> o progresso que tens neste sítio.';$('xGo').dataset.c='';}}
-$('expB').onclick=()=>{audioInit();sfx('ui');xOpen('exp');};
-$('hExp').onclick=async()=>{sfx('ui');await saveGame();xOpen('exp');};
-$('hImp').onclick=()=>{sfx('ui');xOpen('imp');};
-$('impB').onclick=()=>{audioInit();sfx('ui');xOpen('imp');};
-$('xX').onclick=()=>$('xfer').classList.add('hide');
-$('xGo').onclick=async()=>{const a=$('xA'),b=$('xGo');
- if(xMode==='exp'){a.focus();a.select();let ok=false;try{await navigator.clipboard.writeText(a.value);ok=true;}catch(e){try{ok=document.execCommand('copy');}catch(e2){}}
-  b.textContent=ok?'✅ Copiado!':'Seleciona o texto e copia à mão';setTimeout(()=>{b.textContent='📋 Copiar código';},1800);return;}
- let sv;try{sv=normSave(await unpackSave(a.value));if(!sv||!sv.prof)throw 0;}catch(e){b.textContent='❌ Código inválido';setTimeout(()=>{b.textContent='Carregar progresso';},1600);return;}
- if(bestSave&&b.dataset.c!=='1'){b.dataset.c='1';b.textContent='Tens a certeza? Toca outra vez';return;}
- sv.at=Date.now();bestSave=sv;const json=JSON.stringify(sv);try{localStorage.setItem(KEY,json);}catch(e){}
- if(DB&&UID){try{await DB.doc('data/users/'+UID+'/save').set({json,at:sv.at});}catch(e){}}
- $('xfer').classList.add('hide');if(state==='hub'){PROF=cleanProf(sv.prof);renderHub();}else showStart(false);const st=sv.prof.stats||{};sfx('rare');
- toast(`✅ Progresso carregado: ${sv.prof.stash.filter(Boolean).length} itens no armazém · ${st.extr||0} extrações`);};
 // ---------- app instalável (PWA) ----------
 {let dp=null;const inApp=(typeof matchMedia==='function'&&matchMedia('(display-mode: fullscreen),(display-mode: standalone)').matches)||navigator.standalone;
  const top=(()=>{try{return window.top===window;}catch(e){return false;}})();
