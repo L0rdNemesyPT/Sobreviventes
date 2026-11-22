@@ -4,6 +4,13 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
 <title>Sobreviventes.io</title>
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#121315">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
 <style>
 /* VOICE: limpo e moderno por cima de um mundo sujo
    IDEA: vidro fosco cinzento sobre o mapa do sobrevivente
@@ -180,6 +187,8 @@ h1{font:800 clamp(30px,8vw,44px)/1.05 Inter,sans-serif;letter-spacing:-.03em;mar
   <div id="saveInfo" style="margin-top:12px;font-size:13px;opacity:.75">A procurar jogo guardado…</div>
   <button class="big hide" id="cont">Continuar</button><br>
   <button class="big" id="play">Novo jogo</button>
+  <button class="big hide" id="instApp" style="background:#2f8f4a;color:#fff">📲 Instalar app</button>
+  <div id="instTip" class="hide" style="margin-top:8px;font-size:12px;opacity:.75">No Chrome: menu ⋮ → <b>Instalar app</b> (ou "Adicionar ao ecrã principal")</div>
 </div></div>
 
 <div id="over" class="ov hide"><div class="panel">
@@ -2528,6 +2537,14 @@ function loop(now){
 }
 requestAnimationFrame(loop);
 initSave();
+// ---------- app instalável (PWA) ----------
+{let dp=null;const inApp=(typeof matchMedia==='function'&&matchMedia('(display-mode: fullscreen),(display-mode: standalone)').matches)||navigator.standalone;
+ const top=(()=>{try{return window.top===window;}catch(e){return false;}})();
+ if(top&&'serviceWorker' in navigator&&(location.protocol==='https:'||location.hostname==='localhost'))navigator.serviceWorker.register('sw.js').catch(()=>{});
+ if(top&&!inApp&&location.protocol==='https:'){addEventListener('beforeinstallprompt',e=>{e.preventDefault();dp=e;$('instApp').classList.remove('hide');$('instTip').classList.add('hide');});
+  setTimeout(()=>{if(!dp&&/Android/i.test(navigator.userAgent))$('instTip').classList.remove('hide');},2500);}
+ $('instApp').onclick=async()=>{if(!dp)return;dp.prompt();const r=await dp.userChoice;dp=null;$('instApp').classList.add('hide');if(r.outcome==='accepted')toast('📲 App instalada! Procura o ícone no ecrã principal');};
+ addEventListener('appinstalled',()=>{$('instApp').classList.add('hide');$('instTip').classList.add('hide');});}
 if(location.hash==='#debug')window.__g={get P(){return P},get setts(){return setts},get exts(){return exts},get camps(){return camps},get zs(){return zs},get animals(){return animals},get houses(){return houses},obj:()=>obj,tiles:()=>tiles,threat,roll,LOOT,get regrow(){return regrow},spawnBand,placeBau,openBau,buildChunk,SMP,magCap,AU,get WX(){return WX},wxNext,setWx:(k)=>{WX.k=k==='clear'?'rain':'clear';WX.t=0;},solidAt,tapAt:(x,y)=>tapAt(x,y),get houses(){return houses},get items(){return items},get baus(){return baus},get ebul(){return ebul},ZT,get state(){return state},setTime:v=>{time=v},spawnA,spawnZ,dmgZ,ATL,openInv,enterHub,startRaid,hitObj,breakWin,setPROF:p=>{PROF=p},newProf,inv:()=>inv,setTarget,explode,dropGround,openTrade};
 }
 </script>
