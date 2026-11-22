@@ -625,7 +625,7 @@ function newGame(sv){
   eq:{capacete:null,armadura:null,fones:null,arma1:{id:'faca',q:1},arma2:null}};
  inv=new Array(BASE_INV).fill(null);inv[0]={id:'maca',q:2};inv[1]={id:'agua',q:1};
  zs=[];bullets=[];items=[];parts=[];texts=[];clouds=[];regrow=[];baus=[];ebul=[];bandT=25;bauCur=null;
- animals=[];casings=[];fireVis=[];leaves=[];evs=[];evT=mr(80,120);bossT=90;pendBoom=[];drops=[];WX={k:'clear',t:mr(60,140),r:0,f:0,rT:0,fT:0,boltT:8};hitStop=0;
+ animals=[];casings=[];fireVis=[];leaves=[];evs=[];evT=mr(180,300);bossT=90;pendBoom=[];drops=[];WX={k:'clear',t:mr(60,140),r:0,f:0,rT:0,fT:0,boltT:8};hitStop=0;
  decals=[];corpses=[];rings=[];lights=[];nades=[];chain=[];flashA=0;lastPhase=-1;lastThr=0;
  wood=0;stone=0;kills=0;time=DAY*.08;buildSel=null;curSett=-1;saveT=30;
  if(sv){
@@ -1243,7 +1243,7 @@ function evRescue(){const s=openSpot(14,30);if(!s)return;const e={k:'resc',x:s.x
  const n=5+Math.floor(threat()/2);for(let k=0;k<n;k++){const a=Math.random()*6.28,r=mr(110,220);const z=mkZ(Math.random()<.2?'rapido':'normal',s.x+Math.cos(a)*r,s.y+Math.sin(a)*r);z.tg=e;}
  toast('📻 "Socorro! Estou cercado!" — um sobrevivente pede ajuda (marcado no mapa)');sfx('beep');}
 function updEvents(dt){
- evT-=dt;if(evT<=0){evT=mr(150,230)*(radioLv()>=3?.65:1);const r=Math.random();if(r<.42)evDrop();else if(r<.72||radioLv()<1)evHorde();else evRescue();}
+ evT-=dt;if(evT<=0){evT=mr(360,600)*(radioLv()>=3?.75:1);const r=Math.random();if(r<.42)evDrop();else if(r<.72||radioLv()<1)evHorde();else evRescue();}
  bossT-=dt;if(bossT<=0){bossT=75;const L=threat();if(L>=4&&!zs.some(z=>z.k==='chefe')&&Math.random()<.16+L*.02)spawnBoss();}
  for(const p of pendBoom){p.t-=dt;if(p.t<=0){p.done=1;bomberBoom(p.z);}}pendBoom=pendBoom.filter(p=>!p.done);
  for(const e of evs){e.t+=dt;const d=Math.hypot((e.x||P.x)-P.x,(e.y||P.y)-P.y);
