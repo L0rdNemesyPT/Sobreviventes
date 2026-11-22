@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
 <title>Sobreviventes.io</title>
-<link rel="manifest" href="manifest.webmanifest">
+<link rel="manifest" href="./manifest.webmanifest">
 <meta name="theme-color" content="#121315">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -2540,7 +2540,7 @@ initSave();
 // ---------- app instalável (PWA) ----------
 {let dp=null;const inApp=(typeof matchMedia==='function'&&matchMedia('(display-mode: fullscreen),(display-mode: standalone)').matches)||navigator.standalone;
  const top=(()=>{try{return window.top===window;}catch(e){return false;}})();
- if(top&&'serviceWorker' in navigator&&(location.protocol==='https:'||location.hostname==='localhost'))navigator.serviceWorker.register('sw.js').catch(()=>{});
+ if(top&&'serviceWorker' in navigator&&(location.protocol==='https:'||location.hostname==='localhost')){let rl=false;const had=!!navigator.serviceWorker.controller;navigator.serviceWorker.addEventListener('controllerchange',()=>{if(rl||!had||state!=='start')return;rl=true;location.reload();});navigator.serviceWorker.register('sw.js',{updateViaCache:'none'}).catch(()=>{});}
  if(top&&!inApp&&location.protocol==='https:'){addEventListener('beforeinstallprompt',e=>{e.preventDefault();dp=e;$('instApp').classList.remove('hide');$('instTip').classList.add('hide');});
   setTimeout(()=>{if(!dp&&/Android/i.test(navigator.userAgent))$('instTip').classList.remove('hide');},2500);}
  $('instApp').onclick=async()=>{if(!dp)return;dp.prompt();const r=await dp.userChoice;dp=null;$('instApp').classList.add('hide');if(r.outcome==='accepted')toast('📲 App instalada! Procura o ícone no ecrã principal');};
