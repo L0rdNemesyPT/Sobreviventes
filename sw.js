@@ -1,5 +1,5 @@
 // Sobreviventes.io — funciona offline depois da primeira visita
-const V='sv-b98c6b64';
+const V='sv-fcc0d3b6';
 const FILES=['./', 'index.html', 'atlas.png?v=a0485b05', 'room.jpg', 'manifest.webmanifest', 'icon-192.png', 'icon-512.png', 'sfx/ak.mp3', 'sfx/auto.mp3', 'sfx/brk1.mp3', 'sfx/brk2.mp3', 'sfx/brk3.mp3', 'sfx/click.mp3', 'sfx/door.mp3', 'sfx/hammer.mp3', 'sfx/pickup.mp3', 'sfx/reload.mp3', 'sfx/shot.mp3', 'sfx/slash.mp3', 'sfx/stone1.mp3', 'sfx/stone2.mp3', 'sfx/stone3.mp3', 'sfx/wood.mp3', 'sfx/zg1.mp3', 'sfx/zg2.mp3', 'sfx/zg3.mp3'];
 self.addEventListener('install',e=>{e.waitUntil(caches.open(V).then(c=>c.addAll(FILES)).then(()=>self.skipWaiting()));});
 self.addEventListener('activate',e=>{e.waitUntil(caches.keys().then(ks=>Promise.all(ks.filter(k=>k!==V).map(k=>caches.delete(k)))).then(()=>self.clients.claim()));});
