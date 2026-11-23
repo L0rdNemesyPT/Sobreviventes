@@ -199,6 +199,13 @@ h1{font:800 clamp(30px,8vw,44px)/1.05 Inter,sans-serif;letter-spacing:-.03em;mar
 </div></div>
 
 <div id="baseP" class="ov hide" style="z-index:25"><div class="panel" id="baseB" style="width:min(460px,100%);max-height:86vh;overflow:auto"></div></div>
+<div id="nameP" class="ov hide" style="z-index:40"><div class="panel" style="width:min(420px,100%)">
+  <div class="ph"><b>👤 Nome do sobrevivente</b></div>
+  <div style="font-size:13px;opacity:.8;margin:4px 0 10px">É o nome que os teus amigos vão ver por cima da tua personagem.</div>
+  <input id="nameI" maxlength="16" autocomplete="off" spellcheck="false" placeholder="Ex.: Nemesy" style="width:100%;min-height:50px;border-radius:12px;border:1px solid var(--ln);background:#0d0e10;color:#fff;font:700 18px Inter,sans-serif;padding:0 14px;text-align:center">
+  <div id="nameE" style="font-size:12px;color:#ff9a8a;min-height:18px;margin:6px 0"></div>
+  <button class="big" id="nameOk" style="width:100%">Confirmar</button>
+</div></div>
 <div id="over" class="ov hide"><div class="panel">
   <h1>Morreste</h1>
   <div id="ovT"></div>
@@ -214,7 +221,7 @@ h1{font:800 clamp(30px,8vw,44px)/1.05 Inter,sans-serif;letter-spacing:-.03em;mar
 <div id="hub" class="ov hide">
  <div id="hRoom"></div>
  <div class="hubw">
-  <div class="ph"><b>🏚️ Esconderijo</b></div>
+  <div class="ph"><b>🏚️ Esconderijo</b><button class="sbtn" id="hName">👤 <span id="hNameT"></span> ✏️</button></div>
   <div id="hStats" style="font-size:12px;opacity:.75;margin-top:-6px"></div>
   <div class="sec">Equipamento</div>
   <div id="hEq" class="gr"></div>
@@ -690,7 +697,7 @@ function showStart(searching){
  const c=$('cont'),info=$('saveInfo');
  if(bestSave){c.classList.remove('hide');const r=bestSave.raid;
   c.textContent=r?'Continuar · No mundo (dia '+(Math.floor(r.time/DAY)+1)+')':'Continuar · Esconderijo';
-  const st=bestSave.prof.stats;info.textContent=`${st.extr} extrações · ${st.kills} zombies · ${new Date(bestSave.at).toLocaleString('pt-PT',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'})}`;}
+  const st=bestSave.prof.stats;info.textContent=`${bestSave.prof.name?'👤 '+bestSave.prof.name+' · ':''}${st.extr} extrações · ${st.kills} zombies · ${new Date(bestSave.at).toLocaleString('pt-PT',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'})}`;}
  else{c.classList.add('hide');info.textContent=searching?'A procurar jogo guardado…':'Sem jogo guardado.';}
  $('play').textContent='Novo jogo';$('play').dataset.confirm='';}
 async function initSave(){
@@ -1975,7 +1982,7 @@ function trashHTML(){
 function trashToggleGroup(pred){const keys=trashList().filter(a=>pred(a[2])).map(a=>a[0]+':'+a[1]);if(!keys.length)return;
  const allIn=keys.every(k=>trashSel.has(k));for(const k of keys)allIn?trashSel.delete(k):trashSel.add(k);trashConf=false;}
 function renderHub(){
- const st=PROF.stats;renderRoom();
+ const st=PROF.stats;renderRoom();updName();if(!PROF.name&&!nameCb&&!askName.open)setTimeout(()=>{if(state==='hub'&&!PROF.name)askName();},400);
  $('hStats').innerHTML=`${ie('moeda',18)} ${ammo('moeda',[...PROF.inv,...PROF.stash])} moedas · ${st.extr} extrações · ${st.deaths} mortes · ${st.kills} zombies`;
  $('hEq').innerHTML=SLOTS.map(k=>slotHTML(PROF.eq[k],SLOTN[k],`data-he="${k}"`,hubSel&&hubSel.k===k)).join('');
  $('hInv').innerHTML=PROF.inv.map((it,i)=>slotHTML(it,'',`data-hi="${i}"`,hubSel&&hubSel.w==='i'&&hubSel.i===i,i>=BASE_INV)).join('');
@@ -2153,7 +2160,7 @@ $('cont').onclick=()=>{if(!bestSave)return;audioInit();goFull();$('start').class
  if(bestSave.raid){newGame(bestSave.raid);}else{enterHub();if(bestSave.mapUp){bestSave.mapUp=0;setTimeout(()=>toast('🗺️ O mapa cresceu! Voltaste ao esconderijo com o que levavas.'),400);}}};
 $('play').onclick=()=>{const b=$('play');
  if(bestSave&&!b.dataset.confirm){b.dataset.confirm='1';b.textContent='Apagar tudo e começar do zero?';return;}
- audioInit();goFull();deleteSave();PROF=newProf();enterHub();};
+ audioInit();goFull();deleteSave();PROF=newProf();try{PROF.name=cleanName(localStorage.getItem('sv_name'))||'';}catch(e){}enterHub();askName();};
 $('again').onclick=()=>enterHub();$('toHub').onclick=()=>enterHub();
 
 // ---------- caminhos e alvos ----------
@@ -2615,6 +2622,7 @@ for(const r of regrow){if(r.t!=='tree'&&r.t!=='rock')continue;const x=(r.i%W)*TS
   cx.globalAlpha=1;cx.globalCompositeOperation='source-over';}}
  for(const l of lights){const a=l.t/l.ml*.45,g=cx.createRadialGradient(l.x,l.y,0,l.x,l.y,l.r*.6);g.addColorStop(0,`rgba(${l.c},${a})`);g.addColorStop(1,`rgba(${l.c},0)`);cx.fillStyle=g;cx.fillRect(l.x-l.r,l.y-l.r,l.r*2,l.r*2);}
  cx.globalCompositeOperation='source-over';
+ if(P)drawName(P.x,ATL.ok?P.y+P.r*.8-(P.sprH||46)-(P.barT>0?16:4):P.y-P.r-18,PROF&&PROF.name,'#bff0c0');
  drawLeaves();drawEventsSky();
  cx.font='bold 14px Inter,sans-serif';
  for(const t of texts){cx.font=t.sm?'bold 11px Inter,sans-serif':t.vy?'900 17px Inter,sans-serif':'bold 14px Inter,sans-serif';cx.globalAlpha=Math.min(1,t.l*2);cx.fillStyle='#000';cx.fillText(t.t,t.x+1,t.y+1);cx.fillStyle=t.c;cx.fillText(t.t,t.x,t.y);}cx.globalAlpha=1;
@@ -2748,6 +2756,18 @@ function loop(now){
 requestAnimationFrame(loop);
 initSave();
 
+
+// ---------- nome do jogador ----------
+function cleanName(n){return String(n||'').replace(/[<>&"'`]/g,'').replace(/\s+/g,' ').trim().slice(0,16);}
+let nameCb=null;
+function askName(cb){askName.open=1;nameCb=cb;const i=$('nameI');i.value=(PROF&&PROF.name)||'';$('nameE').textContent='';$('nameP').classList.remove('hide');setTimeout(()=>i.focus(),50);}
+function nameOk(){const n=cleanName($('nameI').value);if(n.length<2){$('nameE').textContent='Escreve pelo menos 2 letras.';return;}
+ PROF.name=n;try{localStorage.setItem('sv_name',n);}catch(e){}$('nameP').classList.add('hide');askName.open=0;sfx('ui');updName();saveGame();const cb=nameCb;nameCb=null;if(cb)cb();}
+function updName(){const e=$('hNameT');if(e)e.textContent=(PROF&&PROF.name)||'Sem nome';}
+$('nameOk').onclick=nameOk;$('nameI').addEventListener('keydown',e=>{if(e.key==='Enter')nameOk();});
+$('hName').onclick=()=>{sfx('ui');askName();};
+function drawName(x,y,n,col){if(!n)return;cx.font='800 12px Inter,sans-serif';cx.textAlign='center';const w=cx.measureText(n).width+10;
+ cx.fillStyle='rgba(10,12,14,.6)';cx.beginPath();cx.roundRect?cx.roundRect(x-w/2,y-13,w,17,8):cx.rect(x-w/2,y-13,w,17);cx.fill();cx.fillStyle=col||'#fff';cx.fillText(n,x,y);}
 // ---------- app instalável (PWA) ----------
 {let dp=null;const inApp=(typeof matchMedia==='function'&&matchMedia('(display-mode: fullscreen),(display-mode: standalone)').matches)||navigator.standalone;
  const top=(()=>{try{return window.top===window;}catch(e){return false;}})();
