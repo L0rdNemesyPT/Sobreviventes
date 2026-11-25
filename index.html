@@ -1992,7 +1992,7 @@ function tabsHTML(lists){const n={};for(const L of lists)for(const it of L)if(it
 function tabsShow(id){const t=$(id);if(!t)return;const b=t.querySelector('.on');if(b){const l=b.offsetLeft-t.offsetLeft;if(l<t.scrollLeft||l+b.offsetWidth>t.scrollLeft+t.clientWidth)t.scrollLeft=Math.max(0,l-12);}}
 function applyF(el,arr){if(!el)return;const ch=el.children;let vis=0;for(let i=0;i<ch.length&&i<arr.length;i++){const it=arr[i],hide=invF!=='all'&&(!it||catOf(it.id)!==invF);ch[i].classList.toggle('fx',hide);if(!hide)vis++;}
  if(invF!=='all'&&!vis)el.insertAdjacentHTML('beforeend','<div class="fxe">Nada desta categoria aqui.</div>');}
-document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('[data-cat]');if(!b)return;invF=b.dataset.cat;sfx('ui');
+if(document.addEventListener)document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('[data-cat]');if(!b)return;invF=b.dataset.cat;sfx('ui');
  if(state==='hub')renderHub();else if(state==='inv')renderInv();});
 function renderInv(){
  $('eq').innerHTML=SLOTS.map(k=>slotHTML(P.eq[k],SLOTN[k],`data-eq="${k}"`,sel&&sel.eq===k)).join('');
