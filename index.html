@@ -1459,7 +1459,7 @@ function openSpot(t0,t1){for(let k=0;k<60;k++){const a=Math.random()*6.28,d=mr(t
 const DIRN=a=>{const d=((a*180/Math.PI)+360+22.5)%360;return['Este','Sudeste','Sul','Sudoeste','Oeste','Noroeste','Norte','Nordeste'][Math.floor(d/45)];};
 function evDrop(){const s=openSpot(16,38);if(!s)return;const a=Math.random()<.5?0:Math.PI;
  const e={k:'drop',x:s.x,y:s.y,tx:s.tx,ty:s.ty,ph:'plane',px:s.x-Math.cos(a)*1500,py:s.y-160,dir:Math.cos(a),fh:0,t:0,seen:radioLv()>=1};evs.push(e);
- sfx('plane',e.px,e.py);toast(radioLv()>=1?'📦 Rádio: lançamento aéreo a caminho! Está marcado no mapa':'✈️ Ouves um avião ao longe… procura fumo vermelho');}
+ if(!playSmp('plane',.6,0,1))sfx('plane',e.px,e.py);toast(radioLv()>=1?'📦 Rádio: lançamento aéreo a caminho! Está marcado no mapa':'✈️ Ouves um avião ao longe… procura fumo vermelho');}
 function evHorde(){const L=threat(),a=Math.random()*6.28,warn=radioLv()>=2?25:7;
  evs.push({k:'horde',a,t:0,warn,n:12+L*2+Math.floor(Math.random()*5),zz:null});
  toast(radioLv()>=2?`📻 Rádio: horda vinda de ${DIRN(a)} daqui a ${warn} s!`:`🧟 Uma horda aproxima-se de ${DIRN(a)}!`);sfx('beep');}
@@ -1473,7 +1473,7 @@ function updEvents(dt){
  for(const e of evs){e.t+=dt;const d=Math.hypot((e.x||P.x)-P.x,(e.y||P.y)-P.y);
   if(e.k==='drop'){
    if(e.ph==='plane'){e.px+=e.dir*420*dt;if(Math.abs(e.px-e.x)<20&&!e.rel){e.rel=1;e.ph='fall';e.fh=260;}
-    if(Math.random()<dt*2)sfx('plane',e.px,e.py,.6);}
+    if(!SMP.plane&&Math.random()<dt*2)sfx('plane',e.px,e.py,.6);}
    else if(e.ph==='fall'){e.px+=e.dir*420*dt;e.fh-=70*dt;if(e.fh<=0){e.ph='land';const i=e.ty*W+e.tx;obj[i]={t:'drop',hp:40};mmSet(i);sfx('thud',e.x,e.y);burst(e.x,e.y,'#a08060',14,180);shake=Math.min(8,shake+(d<600?4:0));
      const L=threat(),n=4+L;for(let k=0;k<n;k++){const a=Math.random()*6.28,r=mr(160,320);mkZ(Math.random()<.25?'rapido':Math.random()<.1?'tank':'normal',e.x+Math.cos(a)*r,e.y+Math.sin(a)*r);}
      if(Math.random()<.3+L*.04){const a=Math.random()*6.28;spawnBandAt(e.x+Math.cos(a)*380,e.y+Math.sin(a)*380);}}}
@@ -1702,11 +1702,11 @@ function ambient(){const c=AU.c,s=c.createBufferSource();s.buffer=AU.nb;s.loop=t
  l.connect(lg);lg.connect(g.gain);s.connect(f);f.connect(g);g.connect(AU.m);s.start();l.start();
  {const r=c.createBufferSource();r.buffer=AU.nb;r.loop=true;const hp=c.createBiquadFilter();hp.type='highpass';hp.frequency.value=1800;const lp=c.createBiquadFilter();lp.type='lowpass';lp.frequency.value=7000;
   AU.rg=c.createGain();AU.rg.gain.value=0;r.connect(hp);hp.connect(lp);lp.connect(AU.rg);AU.rg.connect(AU.m);r.start();}}
-const SMP={},SMPMAP={pistola:['shot',1.12,.85],deagle:['shot',.95,1],espingarda:['shot',.9,1],sniper:['shot',.8,1.1],cacadeira:['shot',.76,1.1],tatica:['shot',.84,1],
- ak:['ak',1,.9],m4:['ak',1.08,.85],scar:['ak',.93,.95],smg:['auto',1.2,.75],vector:['auto',1.3,.7],reload:['reload',1,.8],revolver:['shot',.86,1.05],uzi:['auto',1.38,.7],serrada:['shot',.7,1.15],m249:['ak',.84,1],
+const SMP={},SMPMAP={pistola:['shot',1.12,.85],deagle:['shot',.95,1],espingarda:['shot',.9,1],sniper:['sniper',1,1.1],cacadeira:['shotgun',1,1.1],tatica:['shotgun',1.06,1],
+ ak:['ak',1,.9],m4:['ak',1.08,.85],scar:['ak',.93,.95],smg:['auto',1.2,.75],vector:['auto',1.3,.7],reload:['reload',1,.8],revolver:['shot',.86,1.05],uzi:['auto',1.38,.7],serrada:['shotgun',.94,1.15],silenced:['sil',1,.45],silencedR:['sil',.8,.55],eat:['eat',1,1],drink:['drink',1,.7],zip:['zip',1,.6],m249:['ak',.84,1],
  chop:['wood',1,.9],crate:['wood',1.25,.6],thud:['wood',.8,.5],stone:[['stone1','stone2','stone3'],1,.85],swing:['slash',1,.6],pickup:['pickup',1,.6],ui:['click',1,.5],
  crack:[['brk1','brk2','brk3'],1,.8],wallbreak:[['brk1','brk2','brk3'],.85,1],build:['hammer',1,.7],door:['door',1,.8]};
-function loadSamples(){for(const n of ['shot','auto','reload','zg1','zg2','zg3','wood','stone1','stone2','stone3','slash','pickup','click','ak','brk1','brk2','brk3','door','hammer'])fetch('sfx/'+n+'.mp3').then(r=>{if(!r.ok)throw 0;return r.arrayBuffer();})
+function loadSamples(){for(const n of ['shot','auto','reload','zg1','zg2','zg3','wood','stone1','stone2','stone3','slash','pickup','click','ak','brk1','brk2','brk3','door','hammer','shotgun','sniper','sil','eat','drink','zip','zrun','heli','plane'])fetch('sfx/'+n+'.mp3').then(r=>{if(!r.ok)throw 0;return r.arrayBuffer();})
  .then(b=>new Promise((ok,ko)=>AU.c.decodeAudioData(b,ok,ko))).then(buf=>{SMP[n]=buf;}).catch(()=>{});}
 function playSmp(n,v,pan,rate,off,dur){if(!AU.c||!AU.on||!SMP[n])return false;try{const c=AU.c,t=c.currentTime,s=c.createBufferSource();s.buffer=SMP[n];s.playbackRate.value=rate||1;
  const g=vout(v,pan);if(dur){g.gain.setValueAtTime(v,t+Math.max(.01,dur/(rate||1)-.15));g.gain.linearRampToValueAtTime(0,t+dur/(rate||1));}s.connect(g);s.start(t,off||0,dur);return true;}catch(e){return false;}}
@@ -1796,6 +1796,14 @@ function sfx(name,x,y,vm){
   if(!SFX[name]&&IT[name]&&IT[name].snd)name=IT[name].snd;const dst=vout(v,pan);for(const [k,o] of SFX[name])(k==='n'?nz:tn)(o,dst);}catch(e){}}
 const GROAN={normal:[80,110,.8,1.3,'sawtooth',.1],rapido:[260,340,.3,.5,'sawtooth',.06],tank:[42,58,1.2,1.8,'sawtooth',.16],veneno:[120,150,.7,1,'square',.05]};
 let groanT=0;
+// corredor: grito a correr quando te persegue (com intervalo para não encher o som)
+function zRun(z,d){if(!SMP.zrun||d>650||(z.rnT&&time<z.rnT))return;z.rnT=time+mr(7,12);const c=AU.c;if(!c||c.currentTime-(zRun.t||-9)<1.4)return;zRun.t=c.currentTime;
+ playSmp('zrun',.55*Math.max(.15,1-d/800),clamp((z.x-P.x)/500,-.8,.8),mr(.95,1.1),mr(0,3),mr(1.4,1.9));}
+// helicóptero enquanto extrais (chega devagar e vai-se embora se saíres da zona)
+const HELI={s:null,g:null};
+function heliOn(on){const c=AU.c;if(!c||!SMP.heli)return;const t=c.currentTime;
+ if(on&&AU.on&&!HELI.s){try{const s=c.createBufferSource();s.buffer=SMP.heli;s.loop=true;s.loopStart=3;s.loopEnd=17;const g=vout(0,0);g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(.5,t+3);s.connect(g);s.start(t,1);HELI.s=s;HELI.g=g;}catch(e){}}
+ else if(!on&&HELI.s){try{HELI.g.gain.cancelScheduledValues(t);HELI.g.gain.setValueAtTime(HELI.g.gain.value,t);HELI.g.gain.linearRampToValueAtTime(0,t+1.5);HELI.s.stop(t+1.6);}catch(e){}HELI.s=null;HELI.g=null;}}
 function groan(z){if(!AU.c||!AU.on||groanT>0)return;groanT=.35;if(SMP.zg1&&zVoice(z,'g')){groanT=.9;return;}const g=GROAN[z.k]||GROAN[(SKIN[z.k]||['normal'])[0]]||GROAN.normal,f=mr(g[0],g[1]),d=mr(g[2],g[3]);
  const dx=z.x-P.x,dist=Math.hypot(dx,z.y-P.y),v=Math.max(0,1-dist/800);if(v<.05)return;
  try{const dst=vout(v,clamp(dx/500,-.8,.8));tn({f,f2:f*.7,d,v:g[5],w:g[4],lp:600,vib:mr(4,8),at:.1},dst);
@@ -1909,7 +1917,7 @@ function attack(S){
   const it0=curWeaponItem();if(P.rl>0)return;
   if(!(it0.mag>0)){if(!startReload(it0,w)){toast('Sem '+IT[w.a].n+'!');sfx('empty');P.cd=500;}return;}
   it0.mag--;P.lastShot=time;
-  P.cd=w.rate;P.flash=.06;P.aimT=.7;shake=Math.min(12,shake+(w.pel?5:w.dmg>=45?4.5:w.dmg>=30?2:1));sfx(w.bow?'bow':curWeaponItem().id);wear(curWeaponItem());
+  P.cd=w.rate;P.flash=.06;P.aimT=.7;shake=Math.min(12,shake+(w.pel?5:w.dmg>=45?4.5:w.dmg>=30?2:1));{const it=curWeaponItem(),cn=it.mods&&it.mods.cano&&it.mods.cano.id;sfx(w.bow?'bow':cn==='silenc'?'silenced':cn==='supress'?'silencedR':it.id);}wear(curWeaponItem());
   const mxp=P.x+Math.cos(P.ang)*32,myp=P.y+Math.sin(P.ang)*32;light(mxp,myp,180,.07,'255,220,140');
   if(!w.bow)for(let i=0;i<3;i++){const a=P.ang+mr(-.5,.5),v=mr(150,320),l=mr(.08,.18);addP({x:mxp,y:myp,vx:Math.cos(a)*v,vy:Math.sin(a)*v,l,ml:l,s:2,t:'spark'});}
   if(!w.bow){const a=P.ang+1.57+mr(-.35,.35),v=mr(90,170),l=mr(.35,.55);addP({x:P.x+Math.cos(P.ang)*8,y:P.y+Math.sin(P.ang)*8,vx:Math.cos(a)*v,vy:Math.sin(a)*v,l,ml:l,s:w.a==='cart'?2.6:2,t:'shell',c:w.a==='cart'?'#c03030':'#d4a640',rot:Math.random()*6});}
@@ -2005,7 +2013,7 @@ function toggleBuild(on){if(state!=='play'&&on)return;buildSel=on?(buildSel||'ww
 
 // ---------- UI inventário ----------
 let sel=null;
-function openInv(){if(state!=='play')return;if(P&&P.down)return toast('🆘 Estás caído: espera que um amigo te levante');sfx('ui');state='inv';sel=null;$('inv').classList.remove('hide');renderInv();}
+function openInv(){if(state!=='play')return;if(P&&P.down)return toast('🆘 Estás caído: espera que um amigo te levante');sfx(SMP.zip?'zip':'ui');state='inv';sel=null;$('inv').classList.remove('hide');renderInv();}
 function closeInv(){$('inv').classList.add('hide');state='play';}
 function icF(id){return ATL.ok&&(ATL.f['i_'+id]||ATL.f['w_'+id]);}
 function ie(id,sz){sz=sz||20;const f=icF(id);if(!f)return IT[id].e;const s=Math.min(sz/f[2],sz/f[3]);
@@ -2662,6 +2670,7 @@ function update(dt){
   z.alert-=dt;z.cd-=dt;z.hitT-=dt;z.atk-=dt;
   const det=330*zt.det*(1+S.noise)*(1-S.stealth)*(night?1.4:1)*(1-WX.f*.35)*(1-WX.r*.15);
   const chase=d<det||z.alert>0;let vx,vy,sp=zt.sp*(z.sm||1);
+  if(z.k==='rapido'&&chase&&REALP===P)zRun(z,d);
   if((zt.scream||zt.bomb||zt.boss)&&zSpecial(z,zt,d,dx,dy,dt,chase)){if(d>2100&&z.alert<=0)z.dead=true;continue;}
   {const wi=(z.y/TS|0)*W+(z.x/TS|0),wo=obj[wi];if(wo&&wo.t==='arame'){sp*=.45;z.hp-=6*dt;wo.hp-=3*dt;if(Math.random()<.08)blood(z.x,z.y,null,1);if(wo.hp<=0){obj[wi]=null;mmSet(wi);}if(z.hp<=0)dmgZ(z,1,0,0);}}
   if(chase){if(z.side>0){z.side-=dt;vx=z.sx;vy=z.sy;}else{const v=chaseDir(z,dx,dy,d,dt);vx=v[0];vy=v[1];}z.ang=Math.atan2(vy||dy,vx||dx);}
@@ -2751,7 +2760,7 @@ function update(dt){
  }
  // extração
  {const ex=!P.down&&exts.find(e=>Math.hypot(e.x-P.x,e.y-P.y)<EXR);
-  if(ex){const b=Math.ceil(EXT-P.extT);P.extT=(P.extT||0)+dt;if(Math.ceil(EXT-P.extT)!==b)sfx('beep');P.ext=ex;if(P.extT>=EXT){doExtract(ex);return;}
+  if(ex){const b=Math.ceil(EXT-P.extT);P.extT=(P.extT||0)+dt;if(Math.ceil(EXT-P.extT)!==b)sfx('beep');P.ext=ex;heliOn(true);if(P.extT>=EXT){doExtract(ex);return;}
    if(Math.random()<.3)addP({x:ex.x+mr(-20,20),y:ex.y+mr(-20,20),vx:mr(-8,8),vy:-30,l:1.4,ml:1.4,s:6,t:'smoke',c:'#6f6'});}
   else{P.extT=0;P.ext=null;}}
  if(P.hp<=0&&!P.down){if(mpCanDown())goDown();else doDeath();}
@@ -3100,6 +3109,7 @@ function loop(now){
  try{if(inRaid())update(dt);}catch(e){loopErr(e);} // play, inv, map, bau, trade: os zombies não param
  try{joyVis();qbT-=dt;if(qbT<=0){qbT=.1;renderQB();}}catch(e){loopErr(e);}
  try{mpTick(dt);}catch(e){}
+ if(HELI.s&&!(P&&P.ext&&inRaid()&&P.hp>0))heliOn(false);
  try{if(state==='hub'){roomT-=dt;if(roomT<=0){roomT=.6;const e=$('hPl');if(e){e.dataset.f=e.dataset.f==='1'?'0':'1';e.innerHTML=sprSpan(e.dataset.k+'_idle_'+e.dataset.f,+e.dataset.h);}}}
  render();}catch(e){loopErr(e);}
  try{if(P&&inRaid()){hudT-=dt;if(hudT<=0){hudT=.12;hud();}}}catch(e){loopErr(e);}
@@ -3526,7 +3536,7 @@ function mpOnW(ev,p){if(!inRaid()||p.s!==seed)return;MP.apply=1;
   setTimeout(()=>{if(!dp&&/Android/i.test(navigator.userAgent))$('instTip').classList.remove('hide');},2500);}
  $('instApp').onclick=async()=>{if(!dp)return;dp.prompt();const r=await dp.userChoice;dp=null;$('instApp').classList.add('hide');if(r.outcome==='accepted')toast('📲 App instalada! Procura o ícone no ecrã principal');};
  addEventListener('appinstalled',()=>{$('instApp').classList.add('hide');$('instTip').classList.add('hide');});}
-if(location.hash==='#debug')window.__g={saveGame,get pois(){return pois},get jams(){return jams},get poles(){return poles},get PROF(){return PROF},renderHub,MP,wComp,wOf,rlTime,magCap,inv:()=>inv,get P(){return P},get setts(){return setts},get exts(){return exts},get camps(){return camps},get mil(){return mil},get zs(){return zs},get animals(){return animals},get houses(){return houses},obj:()=>obj,tiles:()=>tiles,threat,roll,LOOT,get regrow(){return regrow},spawnBand,placeBau,openBau,buildChunk,ffAt,dmgZ,mmSet,get kills(){return kills},evDrop,evHorde,evRescue,spawnBoss,mkZ,get evs(){return evs},openBase,SMP,magCap,AU,get WX(){return WX},wxNext,setWx:(k)=>{WX.k=k==='clear'?'rain':'clear';WX.t=0;},solidAt,tapAt:(x,y)=>tapAt(x,y),get houses(){return houses},get items(){return items},get baus(){return baus},get ebul(){return ebul},ZT,get state(){return state},setTime:v=>{time=v},spawnA,spawnZ,dmgZ,ATL,openInv,enterHub,startRaid,hitObj,breakWin,setPROF:p=>{PROF=p},newProf,inv:()=>inv,setTarget,explode,dropGround,openTrade};
+if(location.hash==='#debug')window.__g={saveGame,SMP,HELI,AU,get pois(){return pois},get jams(){return jams},get poles(){return poles},get PROF(){return PROF},renderHub,MP,wComp,wOf,rlTime,magCap,inv:()=>inv,get P(){return P},get setts(){return setts},get exts(){return exts},get camps(){return camps},get mil(){return mil},get zs(){return zs},get animals(){return animals},get houses(){return houses},obj:()=>obj,tiles:()=>tiles,threat,roll,LOOT,get regrow(){return regrow},spawnBand,placeBau,openBau,buildChunk,ffAt,dmgZ,mmSet,get kills(){return kills},evDrop,evHorde,evRescue,spawnBoss,mkZ,get evs(){return evs},openBase,SMP,magCap,AU,get WX(){return WX},wxNext,setWx:(k)=>{WX.k=k==='clear'?'rain':'clear';WX.t=0;},solidAt,tapAt:(x,y)=>tapAt(x,y),get houses(){return houses},get items(){return items},get baus(){return baus},get ebul(){return ebul},ZT,get state(){return state},setTime:v=>{time=v},spawnA,spawnZ,dmgZ,ATL,openInv,enterHub,startRaid,hitObj,breakWin,setPROF:p=>{PROF=p},newProf,inv:()=>inv,setTarget,explode,dropGround,openTrade};
 }
 </script>
 </body>
