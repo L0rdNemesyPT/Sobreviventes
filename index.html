@@ -235,7 +235,7 @@ h1{font:800 clamp(30px,8vw,44px)/1.05 Inter,sans-serif;letter-spacing:-.03em;mar
   <div id="hTot" style="font-size:12px;opacity:.8;margin-top:6px"></div>
   <div class="sec"><span>Mochila <span id="hInvN" style="opacity:.7"></span></span><button class="mini" id="hAll">Tudo para o armazém</button></div>
   <div id="hInv" class="gr"></div>
-  <div class="sec"><span>Armazém <span id="hStN" style="opacity:.7"></span></span><span style="display:flex;gap:6px"><button class="mini" id="hTrash">🗑️ Lixo</button><button class="mini" id="hSort">Arrumar</button></span></div>
+  <div class="sec"><span>Armazém <span id="hStN" style="opacity:.7"></span></span><span style="display:flex;gap:6px"><button class="mini" id="hArm">⬆️ Ampliar</button><button class="mini" id="hTrash">🗑️ Lixo</button><button class="mini" id="hSort">Arrumar</button></span></div>
   <div id="hSt" class="gr"></div>
  </div>
  <div id="hBar"><div id="hTip">Toca num item para o gerir. O equipamento e a mochila arriscam-se no mundo; o armazém fica sempre seguro.</div><div id="hDet" class="hide"></div><div class="hb"><button id="hKit">Kit grátis</button><button id="hGo">ENTRAR NO MUNDO ▶</button></div></div>
@@ -1245,8 +1245,8 @@ function renderRoom(){const el=$('hRoom');if(!el)return;const W0=el.clientWidth|
  const kind=OUTFIT[eq.armadura&&eq.armadura.id]||'pl0';h+=`<div id="hPl" class="hr" style="left:${X(390)}px;top:${Y(800)}px;transform:translate(-50%,-100%)" data-k="${kind}" data-h="${Y(170)}">${sprSpan(kind+'_idle_0',Y(170))}</div>`;
  // zonas tocáveis
  h+=hs(285,1035,490,1315,'go','🚪 Entrar no mundo','go',-28);
- h+=hs(440,200,720,445,'stash','📦 Armazém');
- const bl=k=>PROF.base&&PROF.base[k]?' Nv'+PROF.base[k]:'';
+  const bl=k=>PROF.base&&PROF.base[k]?' Nv'+PROF.base[k]:'';
+ h+=hs(440,200,720,445,'stash','📦 Armazém'+bl('arm'));
  h+=hs(262,235,442,425,'bench','🔧 Bancada'+bl('banc'));
  h+=hs(545,460,720,545,'eq','🔫 Armas',null,-6);
  h+=hs(130,600,270,850,'eq','🧍 Equipamento',null,-6);
@@ -1366,6 +1366,8 @@ const BASE={horta:{n:'Horta',e:'🌱',d:['Ainda sem horta.','Dá 2 alimentos sem
   cost:[[['moeda',30],['agua',2]],[['moeda',70],['sacos',2]],[['moeda',140],['kit',1]]]},
  banc:{n:'Bancada',e:'🔧',d:['Só serve para reparar.','Fabrica munições de pistola e caçadeira, e kits de lâmina.','Também munições de espingarda, ligaduras, kits de armas e granadas.','Também mods: silenciador, miras, punho e carregador.'],
   cost:[[['moeda',40],['fita',1]],[['moeda',90],['kit_arma',1]],[['moeda',180],['kit_arma',2]]]},
+ arm:{n:'Armazém',e:'📦',d:['200 espaços.','300 espaços: prateleiras novas.','400 espaços: armazém completo.'],
+  cost:[[['moeda',120],['sacos',6],['arame',4]],[['moeda',300],['sacos',10],['kit_arma',3]]]},
  radio:{n:'Rádio',e:'📻',d:['Desligado: só ouves os aviões ao longe.','Mostra os lançamentos aéreos no mapa e apanha pedidos de socorro.','Avisa as hordas 25 s antes, com a direção.','Mais eventos no mundo e bandidos no minimapa.'],
   cost:[[['moeda',35]],[['moeda',80],['fones_m',1]],[['moeda',160],['fones_t',1]]]}};
 const RECIPES=[[1,{id:'b9',q:20},[['moeda',12]]],[1,{id:'cart',q:8},[['moeda',14]]],[1,{id:'kit_lamina',q:1},[['moeda',15],['fita',1]]],
@@ -1377,9 +1379,9 @@ function canPay(c){return c.every(([id,q])=>hubCount(id)>=q);}
 function costHTML(c){return c.map(([id,q])=>{const h=hubCount(id),ok=h>=q;return`<span class="bc${ok?'':' no'}">${ie(id,18)} ${q}${id==='moeda'?'':' '+IT[id].n}<small>${h}</small></span>`;}).join('');}
 let baseOpen=null;
 function openBase(k){baseOpen=k;$('baseP').classList.remove('hide');renderBase();sfx('ui');}
-function renderBase(){const k=baseOpen,B=BASE[k],lv=PROF.base[k],nx=lv<3?B.cost[lv]:null;
- let h=`<div class="ph"><b>${B.e} ${B.n} · Nível ${lv}/3</b><button class="xb" data-bx="1">✕</button></div>
- <div class="blv">${[1,2,3].map(i=>`<span class="${i<=lv?'on':''}"></span>`).join('')}</div>
+function renderBase(){const k=baseOpen,B=BASE[k],lv=PROF.base[k],MX=B.cost.length,nx=lv<MX?B.cost[lv]:null;
+ let h=`<div class="ph"><b>${B.e} ${B.n} · Nível ${lv}/${MX}</b><button class="xb" data-bx="1">✕</button></div>
+ <div class="blv">${[1,2,3].slice(0,MX).map(i=>`<span class="${i<=lv?'on':''}"></span>`).join('')}</div>
  <div class="bd">${B.d[lv]}</div>`;
  if(nx)h+=`<div class="bsec">Próximo nível</div><div class="bd" style="opacity:.75">${B.d[lv+1]}</div><div class="bcs">${costHTML(nx)}</div><button class="big bup" data-bu="1" ${canPay(nx)?'':'disabled'}>⬆ Melhorar para nível ${lv+1}</button>`;
  else h+=`<div class="bd" style="color:#7ee08a">Nível máximo!</div>`;
@@ -1387,7 +1389,7 @@ function renderBase(){const k=baseOpen,B=BASE[k],lv=PROF.base[k],nx=lv<3?B.cost[
   RECIPES.forEach(([l,out,c],i)=>{if(l>lv+1)return;const lock=l>lv;h+=`<div class="brc${lock?' lk':''}"><span class="bo">${ie(out.id,26)}<b>${out.q>1?out.q+'× ':''}${IT[out.id].n}</b></span><span class="bcs">${lock?`<em>Nível ${l}</em>`:costHTML(c)}</span>${lock?'':`<button data-bf="${i}" ${canPay(c)?'':'disabled'}>Fazer</button>`}</div>`;});}
  $('baseB').innerHTML=h;}
 $('baseP').addEventListener('click',e=>{const t=e.target;if(t.id==='baseP'||t.closest('[data-bx]')){$('baseP').classList.add('hide');baseOpen=null;renderRoom();return;}
- if(t.closest('[data-bu]')){const k=baseOpen,lv=PROF.base[k],c=BASE[k].cost[lv];if(!c||!canPay(c))return;for(const [id,q] of c)hubTake(id,q);PROF.base[k]=lv+1;sfx('build');sfx('rare');toast(`⬆️ ${BASE[k].n} melhorada para nível ${lv+1}!`);renderBase();renderHub();saveGame();return;}
+ if(t.closest('[data-bu]')){const k=baseOpen,lv=PROF.base[k],c=BASE[k].cost[lv];if(!c||!canPay(c))return;for(const [id,q] of c)hubTake(id,q);PROF.base[k]=lv+1;if(k==='arm')while(PROF.stash.length<stashCap())PROF.stash.push(null);sfx('build');sfx('rare');toast(k==='arm'?`📦 Armazém ampliado: agora tens ${stashCap()} espaços!`:`⬆️ ${BASE[k].n} melhorada para nível ${lv+1}!`);renderBase();renderHub();saveGame();return;}
  const f=t.closest('[data-bf]');if(f){const [l,out,c]=RECIPES[+f.dataset.bf];if(l>PROF.base.banc||!canPay(c))return;for(const [id,q] of c)hubTake(id,q);
   const it=Object.assign({},out);if(addTo(PROF.stash,it)){addTo(PROF.inv,it);}sfx('build');toast(`🔧 Fabricaste ${out.q>1?out.q+'× ':''}${IT[out.id].n}`);renderBase();renderHub();saveGame();}});
 function hortaHarvest(){const lv=PROF.base.horta;if(!lv||!PROF.grow)return;PROF.grow=0;
@@ -1931,18 +1933,19 @@ $('inv').addEventListener('click',e=>{
 
 // ---------- perfil, esconderijo e armazém ----------
 const STASH=200,EXR=110,EXT=8;
+function stashCap(p){p=p||PROF;return STASH+100*((p&&p.base&&p.base.arm)||0);}
 let PROF=null,hubSel=null,hubTrash=false;
 function emptyEq(){return{capacete:null,armadura:null,botas:null,fones:null,mochila:null,arma1:null,arma2:null};}
 function newProf(){
  const st=new Array(STASH).fill(null);
  [{id:'pistola',q:1,r:0},{id:'b9',q:30},{id:'maca',q:3},{id:'agua',q:3},{id:'ligadura',q:2},{id:'mochila_p',q:1,r:0},{id:'bone',q:1,r:0},{id:'moeda',q:20}].forEach((x,i)=>st[i]=x);
  const eq=emptyEq();eq.arma1={id:'faca',q:1,r:0};
- return{stash:st,eq,inv:new Array(BASE_INV).fill(null),stats:{raids:0,extr:0,deaths:0,kills:0},base:{horta:0,banc:0,radio:0}};}
+ return{stash:st,eq,inv:new Array(BASE_INV).fill(null),stats:{raids:0,extr:0,deaths:0,kills:0},base:{horta:0,banc:0,radio:0,arm:0}};}
 function cleanIt(x){if(!x||typeof x!=='object')return null;if(x.id==='balas')x={id:'b9',q:x.q};if(!IT[x.id])return null;if(!(x.q>0))x.q=1;if(x.dur!=null&&!isFinite(x.dur))x.dur=50;return x;}
 function cleanProf(p){p.stash=(p.stash||[]).map(cleanIt);while(p.stash.length<STASH)p.stash.push(null);
  p.eq=Object.assign(emptyEq(),p.eq||{});for(const k in p.eq)p.eq[k]=cleanIt(p.eq[k]);
  p.inv=(p.inv||[]).map(cleanIt);const cap=BASE_INV+bagSlots(p.eq.mochila);while(p.inv.length<cap)p.inv.push(null);
- p.stats=Object.assign({raids:0,extr:0,deaths:0,kills:0},p.stats||{});p.base=Object.assign({horta:0,banc:0,radio:0},p.base||{});return p;}
+ p.stats=Object.assign({raids:0,extr:0,deaths:0,kills:0},p.stats||{});p.base=Object.assign({horta:0,banc:0,radio:0,arm:0},p.base||{});while(p.stash.length<stashCap(p))p.stash.push(null);return p;}
 function addTo(arr,it){const d=IT[it.id];let q=it.q;
  if(d.st>1){for(const s of arr){if(s&&s.id===it.id&&s.q<d.st){const a=Math.min(q,d.st-s.q);s.q+=a;q-=a;if(!q)return 0;}}}
  while(q>0){const i=arr.indexOf(null);if(i<0)return q;const a=d.st>1?Math.min(q,d.st):1;arr[i]=d.st>1?{id:it.id,q:a}:Object.assign({},it,{q:1});q-=a;}
@@ -2040,7 +2043,7 @@ function renderHub(){
  $('hInv').innerHTML=PROF.inv.map((it,i)=>slotHTML(it,'',`data-hi="${i}"`,hubSel&&hubSel.w==='i'&&hubSel.i===i,i>=BASE_INV)).join('');
  $('hSt').innerHTML=PROF.stash.map((it,i)=>slotHTML(it,'',`data-hs="${i}"`,hubSel&&hubSel.w==='s'&&hubSel.i===i)).join('');
  $('hInvN').textContent=`${PROF.inv.filter(Boolean).length}/${PROF.inv.length}`;
- $('hStN').textContent=`${PROF.stash.filter(Boolean).length}/${STASH}`;
+ $('hStN').textContent=`${PROF.stash.filter(Boolean).length}/${stashCap()}`;{const b=$('hArm');if(b){const lv=PROF.base.arm||0;b.textContent=lv<2?'⬆️ Ampliar':'📦 Máx.';}}
  const S=stats(PROF.eq);
  $('hTot').innerHTML=statsHTML(PROF.eq,false);
  const it=hubItem(),det=$('hDet');
@@ -2091,7 +2094,7 @@ function hubAction(a){
   hubSel={w:'e',k};sfx('equip');}
 }
 const ORD={coin:-1,arma:0,capacete:1,armadura:2,fones:3,mochila:4,mod:5,use:6,rep:7,place:8,ammo:9};
-function sortStash(){const list=PROF.stash.filter(Boolean),st=new Array(STASH).fill(null);
+function sortStash(){const list=PROF.stash.filter(Boolean),st=new Array(Math.max(stashCap(),PROF.stash.length)).fill(null);
  list.sort((a,b)=>ORD[IT[a.id].s]-ORD[IT[b.id].s]||rOf(b)-rOf(a)||a.id.localeCompare(b.id));
  for(const it of list)addTo(st,it);PROF.stash=st;}
 $('hub').addEventListener('change',e=>{if(e.target.id==='trItem'&&e.target.value){const id=e.target.value;trashToggleGroup(x=>x.id===id);renderHub();}});
@@ -2118,6 +2121,7 @@ $('hub').addEventListener('click',e=>{
  if(b.dataset.h){hubAction(b.dataset.h);renderHub();saveGame();return;}
  if(b.id==='hAll'){let n=0;for(let i=0;i<PROF.inv.length;i++){const it=PROF.inv[i];if(!it)continue;const left=addTo(PROF.stash,{...it});if(left)it.q=left;else{PROF.inv[i]=null;n++;}}
   toast(n?`${n} item(s) guardados`:'Nada para guardar');hubSel=null;renderHub();saveGame();}
+ else if(b.id==='hArm'){openBase('arm');}
  else if(b.id==='hSort'){sortStash();hubSel=null;toast('Armazém arrumado');renderHub();saveGame();}
  else if(b.id==='hKit'){
   const all=[...Object.values(PROF.eq),...PROF.inv,...PROF.stash].filter(Boolean);
@@ -3115,7 +3119,7 @@ function mpOnW(ev,p){if(!inRaid()||p.s!==seed)return;MP.apply=1;
   setTimeout(()=>{if(!dp&&/Android/i.test(navigator.userAgent))$('instTip').classList.remove('hide');},2500);}
  $('instApp').onclick=async()=>{if(!dp)return;dp.prompt();const r=await dp.userChoice;dp=null;$('instApp').classList.add('hide');if(r.outcome==='accepted')toast('📲 App instalada! Procura o ícone no ecrã principal');};
  addEventListener('appinstalled',()=>{$('instApp').classList.add('hide');$('instTip').classList.add('hide');});}
-if(location.hash==='#debug')window.__g={MP,wComp,wOf,rlTime,magCap,inv:()=>inv,get P(){return P},get setts(){return setts},get exts(){return exts},get camps(){return camps},get mil(){return mil},get zs(){return zs},get animals(){return animals},get houses(){return houses},obj:()=>obj,tiles:()=>tiles,threat,roll,LOOT,get regrow(){return regrow},spawnBand,placeBau,openBau,buildChunk,ffAt,dmgZ,mmSet,get kills(){return kills},evDrop,evHorde,evRescue,spawnBoss,mkZ,get evs(){return evs},openBase,SMP,magCap,AU,get WX(){return WX},wxNext,setWx:(k)=>{WX.k=k==='clear'?'rain':'clear';WX.t=0;},solidAt,tapAt:(x,y)=>tapAt(x,y),get houses(){return houses},get items(){return items},get baus(){return baus},get ebul(){return ebul},ZT,get state(){return state},setTime:v=>{time=v},spawnA,spawnZ,dmgZ,ATL,openInv,enterHub,startRaid,hitObj,breakWin,setPROF:p=>{PROF=p},newProf,inv:()=>inv,setTarget,explode,dropGround,openTrade};
+if(location.hash==='#debug')window.__g={get PROF(){return PROF},renderHub,MP,wComp,wOf,rlTime,magCap,inv:()=>inv,get P(){return P},get setts(){return setts},get exts(){return exts},get camps(){return camps},get mil(){return mil},get zs(){return zs},get animals(){return animals},get houses(){return houses},obj:()=>obj,tiles:()=>tiles,threat,roll,LOOT,get regrow(){return regrow},spawnBand,placeBau,openBau,buildChunk,ffAt,dmgZ,mmSet,get kills(){return kills},evDrop,evHorde,evRescue,spawnBoss,mkZ,get evs(){return evs},openBase,SMP,magCap,AU,get WX(){return WX},wxNext,setWx:(k)=>{WX.k=k==='clear'?'rain':'clear';WX.t=0;},solidAt,tapAt:(x,y)=>tapAt(x,y),get houses(){return houses},get items(){return items},get baus(){return baus},get ebul(){return ebul},ZT,get state(){return state},setTime:v=>{time=v},spawnA,spawnZ,dmgZ,ATL,openInv,enterHub,startRaid,hitObj,breakWin,setPROF:p=>{PROF=p},newProf,inv:()=>inv,setTarget,explode,dropGround,openTrade};
 }
 </script>
 </body>
