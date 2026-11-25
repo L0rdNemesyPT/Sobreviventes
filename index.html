@@ -125,6 +125,10 @@ h1{font:800 clamp(30px,8vw,44px)/1.05 Inter,sans-serif;letter-spacing:-.03em;mar
 .hubw{width:min(560px,100%);margin:0 auto;padding:14px 12px 0}
 .sec{display:flex;justify-content:space-between;align-items:center;margin:16px 0 7px;font-weight:700;font-size:14px}
 .gr{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:6px}
+.tabs{display:flex;gap:5px;overflow-x:auto;margin:8px 0 4px;scrollbar-width:none;-webkit-overflow-scrolling:touch}.tabs::-webkit-scrollbar{display:none}
+.tabs button{flex:0 0 auto;padding:6px 10px;border-radius:16px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.06);color:#ddd;font:600 12px Inter,sans-serif;white-space:nowrap}
+.tabs button.on{background:#e8e8e8;color:#111;border-color:#e8e8e8}.tabs button i{font-style:normal;opacity:.6;margin-left:3px}
+.sl.fx{display:none}.fxe{grid-column:1/-1;opacity:.55;font-size:12px;padding:10px 4px}
 .gr .sl{font-size:22px}
 .mini{min-height:32px;font-size:12px}
 #hBar{position:fixed;left:0;right:0;bottom:0;border-width:1px 0 0;padding:10px max(12px,calc(50vw - 270px)) max(12px,env(safe-area-inset-bottom));border-radius:20px 20px 0 0;background:var(--gl2)}
@@ -177,6 +181,7 @@ h1{font:800 clamp(30px,8vw,44px)/1.05 Inter,sans-serif;letter-spacing:-.03em;mar
   <div id="eq"></div>
   <div id="tot"></div>
   <div id="cap"></div>
+  <div class="tabs" id="tabI"></div>
   <div id="grid"></div>
   <div id="det"></div>
 </div></div>
@@ -234,6 +239,7 @@ h1{font:800 clamp(30px,8vw,44px)/1.05 Inter,sans-serif;letter-spacing:-.03em;mar
   <div class="sec">Equipamento</div>
   <div id="hEq" class="gr"></div>
   <div id="hTot" style="font-size:12px;opacity:.8;margin-top:6px"></div>
+  <div class="tabs" id="tabH"></div>
   <div class="sec"><span>Mochila <span id="hInvN" style="opacity:.7"></span></span><button class="mini" id="hAll">Tudo para o armazém</button></div>
   <div id="hInv" class="gr"></div>
   <div class="sec"><span>Armazém <span id="hStN" style="opacity:.7"></span></span><span style="display:flex;gap:6px"><button class="mini" id="hArm">⬆️ Ampliar</button><button class="mini" id="hTrash">🗑️ Lixo</button><button class="mini" id="hSort">Arrumar</button></span></div>
@@ -1975,9 +1981,22 @@ function fmtMod(k,v){
  if(k==='radar'||k==='hp')return`<div class="${v>0?'g':'r'}">${MODN[k]} ${v>0?'+':''}${v}</div>`;
  const good=(k==='fome'||k==='sede'||k==='noise')?v<0:v>0;
  return`<div class="${good?'g':'r'}">${MODN[k]} ${v>0?'+':''}${Math.round(v*100)}%</div>`;}
+// ---------- separadores do inventário ----------
+const ICAT=[['all','🎒','Tudo'],['arma','⚔️','Armas'],['mun','🔸','Munição'],['com','🍎','Comida'],['med','🩹','Médico'],['eq','🛡️','Equipamento'],['mod','🔧','Mods'],['out','📦','Outros']];
+let invF='all';
+function catOf(id){const d=IT[id];if(!d)return'out';if(d.s==='arma')return'arma';if(d.s==='ammo'||id==='granada')return'mun';
+ if(d.s==='use'&&d.u){if(d.u.hp||d.u.cure)return'med';if(d.u.fome||d.u.sede)return'com';}
+ if(['capacete','armadura','botas','fones','mochila'].includes(d.s))return'eq';if(d.s==='mod')return'mod';return'out';}
+function tabsHTML(lists){const n={};for(const L of lists)for(const it of L)if(it){const c=catOf(it.id);n[c]=(n[c]||0)+1;n.all=(n.all||0)+1;}
+ return ICAT.filter(([k])=>k==='all'||n[k]||k===invF).map(([k,e,t])=>`<button data-cat="${k}" class="${invF===k?'on':''}">${e} ${t}<i>${n[k]||0}</i></button>`).join('');}
+function tabsShow(id){const t=$(id);if(!t)return;const b=t.querySelector('.on');if(b){const l=b.offsetLeft-t.offsetLeft;if(l<t.scrollLeft||l+b.offsetWidth>t.scrollLeft+t.clientWidth)t.scrollLeft=Math.max(0,l-12);}}
+function applyF(el,arr){if(!el)return;const ch=el.children;let vis=0;for(let i=0;i<ch.length&&i<arr.length;i++){const it=arr[i],hide=invF!=='all'&&(!it||catOf(it.id)!==invF);ch[i].classList.toggle('fx',hide);if(!hide)vis++;}
+ if(invF!=='all'&&!vis)el.insertAdjacentHTML('beforeend','<div class="fxe">Nada desta categoria aqui.</div>');}
+document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('[data-cat]');if(!b)return;invF=b.dataset.cat;sfx('ui');
+ if(state==='hub')renderHub();else if(state==='inv')renderInv();});
 function renderInv(){
  $('eq').innerHTML=SLOTS.map(k=>slotHTML(P.eq[k],SLOTN[k],`data-eq="${k}"`,sel&&sel.eq===k)).join('');
- $('grid').innerHTML=inv.map((it,i)=>slotHTML(it,'',`data-i="${i}"`,sel&&sel.i===i,i>=BASE_INV)).join('');
+ $('grid').innerHTML=inv.map((it,i)=>slotHTML(it,'',`data-i="${i}"`,sel&&sel.i===i,i>=BASE_INV)).join('');$('tabI').innerHTML=tabsHTML([inv]);tabsShow('tabI');applyF($('grid'),inv);
  const used=inv.filter(Boolean).length;$('cap').innerHTML=`<span>Mochila: <b>${used}/${inv.length}</b> espaços</span><span>${P.eq.mochila?'+'+bagSlots(P.eq.mochila)+' da mochila':'Sem mochila'}</span>`;
  const S=stats();
  $('tot').innerHTML=statsHTML(P.eq,true);
@@ -2131,6 +2150,7 @@ function renderHub(){
  $('hEq').innerHTML=SLOTS.map(k=>slotHTML(PROF.eq[k],SLOTN[k],`data-he="${k}"`,hubSel&&hubSel.k===k)).join('');
  $('hInv').innerHTML=PROF.inv.map((it,i)=>slotHTML(it,'',`data-hi="${i}"`,hubSel&&hubSel.w==='i'&&hubSel.i===i,i>=BASE_INV)).join('');
  $('hSt').innerHTML=PROF.stash.map((it,i)=>slotHTML(it,'',`data-hs="${i}"`,hubSel&&hubSel.w==='s'&&hubSel.i===i)).join('');
+ $('tabH').innerHTML=tabsHTML([PROF.inv,PROF.stash]);tabsShow('tabH');applyF($('hInv'),PROF.inv);applyF($('hSt'),PROF.stash);
  $('hInvN').textContent=`${PROF.inv.filter(Boolean).length}/${PROF.inv.length}`;
  $('hStN').textContent=`${PROF.stash.filter(Boolean).length}/${stashCap()}`;{const b=$('hArm');if(b){const lv=PROF.base.arm||0;b.textContent=lv<2?'⬆️ Ampliar':'📦 Máx.';}}
  const S=stats(PROF.eq);
@@ -2184,7 +2204,7 @@ function hubAction(a){
 }
 const ORD={coin:-1,arma:0,capacete:1,armadura:2,fones:3,mochila:4,mod:5,use:6,rep:7,place:8,ammo:9};
 function sortStash(){const list=PROF.stash.filter(Boolean),st=new Array(Math.max(stashCap(),PROF.stash.length)).fill(null);
- list.sort((a,b)=>ORD[IT[a.id].s]-ORD[IT[b.id].s]||rOf(b)-rOf(a)||a.id.localeCompare(b.id));
+ const CO=Object.fromEntries(ICAT.map(([k],i)=>[k,i]));list.sort((a,b)=>CO[catOf(a.id)]-CO[catOf(b.id)]||ORD[IT[a.id].s]-ORD[IT[b.id].s]||rOf(b)-rOf(a)||a.id.localeCompare(b.id));
  for(const it of list)addTo(st,it);PROF.stash=st;}
 $('hub').addEventListener('change',e=>{if(e.target.id==='trItem'&&e.target.value){const id=e.target.value;trashToggleGroup(x=>x.id===id);renderHub();}});
 $('hub').addEventListener('click',e=>{
