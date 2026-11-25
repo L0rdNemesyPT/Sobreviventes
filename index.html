@@ -163,7 +163,7 @@ h1{font:800 clamp(30px,8vw,44px)/1.05 Inter,sans-serif;letter-spacing:-.03em;mar
   <button class="rb" id="bSwap">⇄<span>Arma</span></button>
   <button class="rb" id="bMap">🗺️<span>Mapa</span></button>
   <button class="rb" id="bSave">💾<span>Guardar</span></button>
-  <button class="rb" id="bSnd">🔊<span>Som</span></button>
+  <button class="rb" id="bSnd">⚙️<span>Opções</span></button>
   <button class="rb hide" id="bNade" title="Lançar granada">💣</button>
 </div>
 <div id="weap"></div>
@@ -212,6 +212,7 @@ h1{font:800 clamp(30px,8vw,44px)/1.05 Inter,sans-serif;letter-spacing:-.03em;mar
   <div id="nameE" style="font-size:12px;color:#ff9a8a;min-height:18px;margin:6px 0"></div>
   <button class="big" id="nameOk" style="width:100%">Confirmar</button>
 </div></div>
+<div id="optP" class="ov hide" style="z-index:30"><div class="panel" style="width:min(380px,100%)"><div class="ph"><b>⚙️ Opções</b><button class="xb" id="optX">✕</button></div><div id="optL"></div></div></div>
 <div id="mpP" class="ov hide" style="z-index:30"><div class="panel" style="width:min(440px,100%)"></div></div>
 <div id="over" class="ov hide"><div class="panel">
   <h1>Morreste</h1>
@@ -1647,7 +1648,12 @@ function groan(z){if(!AU.c||!AU.on||groanT>0)return;groanT=.35;if(SMP.zg1&&zVoic
  try{const dst=vout(v,clamp(dx/500,-.8,.8));tn({f,f2:f*.7,d,v:g[5],w:g[4],lp:600,vib:mr(4,8),at:.1},dst);
   if(z.k==='rapido')nz({d:d*.8,v:.08,f:1800,type:'bandpass',q:3,at:.05},dst);}catch(e){}}
 function setSound(on){AU.on=on;try{localStorage.setItem('sobrev_som',on?'1':'0');}catch(e){}
- if(AU.m)AU.m.gain.value=on?.75:0;$('bSnd').innerHTML=(on?'🔊':'🔇')+'<span>Som</span>';}
+ if(AU.m)AU.m.gain.value=on?.75:0;renderOpt();}
+
+function renderOpt(){const el=$('optL');if(!el)return;try{joy;}catch(e){return;}
+ const row=(k,ic,n,d,on)=>`<div style="display:flex;align-items:center;gap:12px;padding:12px 4px;border-bottom:1px solid rgba(255,255,255,.08)"><span style="font-size:26px">${ic}</span><div style="flex:1"><b>${n}</b><div style="font-size:12px;opacity:.7">${d}</div></div><button data-opt="${k}" style="min-width:96px;min-height:40px;border:0;border-radius:12px;color:#fff;font:700 14px Inter,sans-serif;background:${on?'#3d7a3a':'#6a3434'}">${on?'Ligado':'Desligado'}</button></div>`;
+ el.innerHTML=row('som',AU.on?'🔊':'🔇','Som do jogo','Música, tiros, zombies e efeitos.',AU.on)+
+  row('joy','🕹️','Joystick','Se o desligares, tocas no ecrã para andar até lá.'+(joy.ok?'':' (só em ecrãs tácteis)'),joy.en);}
 
 // ---------- efeitos ----------
 let decals=[],corpses=[],rings=[],lights=[],nades=[],chain=[],flashA=0,stepT=0,heartT=0,lastPhase=-1,cricketT=3;
@@ -2170,7 +2176,7 @@ addEventListener('keydown',e=>{const k=e.key.toLowerCase();keys[k]=true;
  if(buildSel&&'12345'.includes(k)){buildSel=['wwall','swall','wgate','sgate','del'][+k-1];renderBuild();}});
 addEventListener('keyup',e=>{keys[e.key.toLowerCase()]=false;});
 // ---------- joystick virtual (telemóvel) ----------
-const joy={x:0,y:0,id:null,vis:null,ok:('ontouchstart' in window)||(navigator.maxTouchPoints>0)};
+const joy={x:0,y:0,id:null,vis:null,ok:('ontouchstart' in window)||(navigator.maxTouchPoints>0),en:(()=>{try{return localStorage.getItem('sobrev_joy')!=='0';}catch(e){return true;}})()};
 (function(){
  const el=$('joy');if(!el)return;const knob=el.firstElementChild,R=46;
  function setJ(e){const r=el.getBoundingClientRect();let dx=e.clientX-(r.left+r.width/2),dy=e.clientY-(r.top+r.height/2);
@@ -2182,7 +2188,8 @@ const joy={x:0,y:0,id:null,vis:null,ok:('ontouchstart' in window)||(navigator.ma
  el.addEventListener('pointermove',e=>{if(e.pointerId===joy.id){e.preventDefault();setJ(e);}});
  el.addEventListener('pointerup',endJ);el.addEventListener('pointercancel',endJ);el.addEventListener('lostpointercapture',endJ);
 })();
-function joyVis(){const on=!!(joy.ok&&P&&state==='play'),el=$('joy');if(!el)return;
+function joyVis(){const on=!!(joy.ok&&joy.en&&P&&state==='play'),el=$('joy');if(!el)return;
+ if(!on&&joy.id!==null){joy.id=null;joy.x=0;joy.y=0;}
  if(on!==joy.vis){joy.vis=on;el.classList.toggle('hide',!on);}
  // com o menu de construção aberto o joystick sobe para ficar por cima da barra
  const bt=on&&buildSel?($('build').offsetHeight+12)+'px':'';if(bt!==joy.bt){joy.bt=bt;el.style.bottom=bt;}}
@@ -2230,7 +2237,10 @@ const tend=e=>{for(const t of e.changedTouches)if(t.identifier===touchId){touchI
 cv.addEventListener('touchend',tend);cv.addEventListener('touchcancel',tend);
 function swap(){if(state!=='play')return;sfx('equip');P.act=P.act===1?2:1;P.cd=Math.max(P.cd,200);const it=curWeaponItem();toast('Arma: '+(it?IT[it.id].n:'Punhos'));}
 $('bSwap').onclick=swap;$('bInv').onclick=openInv;$('bBuild').onclick=()=>toggleBuild(!buildSel);$('weap').onclick=swap;
-$('bMap').onclick=openMap;$('bSnd').onclick=()=>{audioInit();setSound(!AU.on);};$('bNade').onclick=throwNade;setSound(AU.on);$('bSave').onclick=()=>saveGame(true);
+$('bMap').onclick=openMap;$('bSnd').onclick=()=>{audioInit();renderOpt();$('optP').classList.remove('hide');};$('optX').onclick=()=>$('optP').classList.add('hide');
+$('optP').onclick=e=>{if(e.target.id==='optP'){$('optP').classList.add('hide');return;}const b=e.target.closest('[data-opt]');if(!b)return;
+ if(b.dataset.opt==='som'){audioInit();setSound(!AU.on);}
+ else if(b.dataset.opt==='joy'){joy.en=!joy.en;try{localStorage.setItem('sobrev_joy',joy.en?'1':'0');}catch(e){}joy.x=joy.y=0;joy.id=null;renderOpt();}};$('bNade').onclick=throwNade;setSound(AU.on);$('bSave').onclick=()=>saveGame(true);
 function goFull(){try{document.documentElement.requestFullscreen&&document.documentElement.requestFullscreen().catch(()=>{});}catch(e){}}
 $('cont').onclick=()=>{if(!bestSave)return;audioInit();goFull();$('start').classList.add('hide');PROF=cleanProf(bestSave.prof);
  if(bestSave.raid){try{newGame(bestSave.raid);}catch(e){console.error(e);
