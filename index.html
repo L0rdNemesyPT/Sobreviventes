@@ -132,6 +132,7 @@ h1{font:800 clamp(30px,8vw,44px)/1.05 Inter,sans-serif;letter-spacing:-.03em;mar
 .tabs button{flex:0 0 auto;padding:6px 10px;border-radius:16px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.06);color:#ddd;font:600 12px Inter,sans-serif;white-space:nowrap}
 .tabs button.on{background:#e8e8e8;color:#111;border-color:#e8e8e8}.tabs button i{font-style:normal;opacity:.6;margin-left:3px}
 .sl.fx{display:none}
+.ktit{margin:10px 0 4px;font:700 13px Inter,sans-serif}.ktit small{font-weight:500;opacity:.6;margin-left:4px}.kits{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}.kit{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);border-radius:12px;padding:6px;display:flex;flex-direction:column;gap:6px}.kit .kn{display:flex;align-items:center;gap:5px;font-size:13px;flex-wrap:wrap}.kit .kn small{width:100%;opacity:.6;font-size:11px}.kit .kb{display:flex;flex-direction:column;gap:4px}.kit .kb button{width:100%;min-height:30px;font-size:12px}.kit .kb .go{background:#3d7a3a;color:#fff;border-color:#3d7a3a}
 .qbrow{display:flex;align-items:center;gap:8px;margin:8px 0 2px;font:600 12px Inter,sans-serif;color:#bbb}.qbrow .qs{width:48px;height:48px;border-radius:12px;border:1px dashed rgba(255,255,255,.22);background:rgba(255,255,255,.05);display:flex;align-items:center;justify-content:center;position:relative;font-size:20px;color:#fff;padding:0}.qbrow .qs.f{border-style:solid;border-color:#e8c040}.qbrow .qs b{position:absolute;right:3px;bottom:1px;font:700 11px Inter,sans-serif;text-shadow:0 1px 2px #000}.qbrow .qs i{position:absolute;right:-5px;top:-6px;font-style:normal;font-size:11px;background:#5a3434;border-radius:8px;padding:0 4px}.qbrow small{opacity:.65;font-weight:500}.fxe{grid-column:1/-1;opacity:.55;font-size:12px;padding:10px 4px}
 .gr .sl{font-size:22px}
 .mini{min-height:32px;font-size:12px}
@@ -245,6 +246,7 @@ h1{font:800 clamp(30px,8vw,44px)/1.05 Inter,sans-serif;letter-spacing:-.03em;mar
   <div class="sec">Equipamento</div>
   <div id="hEq" class="gr"></div>
   <div id="hTot" style="font-size:12px;opacity:.8;margin-top:6px"></div>
+  <div id="hKits"></div>
   <div class="qbrow" id="qbH"></div>
   <div class="tabs" id="tabH"></div>
   <div class="sec"><span>Mochila <span id="hInvN" style="opacity:.7"></span></span><button class="mini" id="hAll">Tudo para o armazém</button></div>
@@ -2014,6 +2016,33 @@ function fmtMod(k,v){
  if(k==='radar'||k==='hp')return`<div class="${v>0?'g':'r'}">${MODN[k]} ${v>0?'+':''}${v}</div>`;
  const good=(k==='fome'||k==='sede'||k==='noise')?v<0:v>0;
  return`<div class="${good?'g':'r'}">${MODN[k]} ${v>0?'+':''}${Math.round(v*100)}%</div>`;}
+// ---------- conjuntos de equipamento (esconderijo) ----------
+function kitsList(){PROF.kits=Array.isArray(PROF.kits)?PROF.kits.slice(0,3):[];while(PROF.kits.length<3)PROF.kits.push(null);return PROF.kits;}
+function kitSave(k){const eq={};for(const s of SLOTS){const it=PROF.eq[s];if(it)eq[s]={id:it.id,r:it.r||0};}
+ const m=new Map();for(const it of PROF.inv)if(it)m.set(it.id,(m.get(it.id)||0)+(it.q||1));
+ if(!Object.keys(eq).length&&!m.size){toast('Equipa-te e enche a mochila primeiro: o conjunto guarda o que levas agora');return;}
+ kitsList()[k]={eq,inv:[...m.entries()],qb:qbList().slice()};sfx('equip');toast('💾 Conjunto '+(k+1)+' guardado');}
+function kitApply(k){const K=kitsList()[k];if(!K)return;
+ // 1) tudo o que levas agora volta ao armazém
+ const cur=[...SLOTS.map(s=>PROF.eq[s]),...PROF.inv].filter(Boolean);
+ if(cur.length>PROF.stash.filter(x=>!x).length+5){toast('Armazém cheio: liberta espaço primeiro');return;}
+ for(const s of SLOTS){const it=PROF.eq[s];if(!it)continue;if(s==='mochila')continue;if(addTo(PROF.stash,it)){toast('Armazém cheio');return;}PROF.eq[s]=null;}
+ for(let i=0;i<PROF.inv.length;i++){const it=PROF.inv[i];if(!it)continue;const left=addTo(PROF.stash,{...it});if(left){it.q=left;toast('Armazém cheio');return;}PROF.inv[i]=null;}
+ if(PROF.eq.mochila){const b=PROF.eq.mochila;PROF.eq.mochila=null;hubSetBag(null);addTo(PROF.stash,b);}
+ // 2) o melhor que houver no armazém para cada peça (mesma raridade primeiro, depois a mais alta)
+ const best=(id,r)=>{let bi=-1,bs=-1e9;PROF.stash.forEach((x,i)=>{if(!x||x.id!==id)return;const sc=(x.r||0)===r?1000:0+(x.r||0)*10+(x.dur!=null?x.dur/20:0)+(x.mods?Object.keys(x.mods).length*3:0);if(sc>bs){bs=sc;bi=i;}});return bi;};
+ const miss=[];
+ const order=['mochila',...SLOTS.filter(s=>s!=='mochila')];
+ for(const s of order){const e=K.eq[s];if(!e)continue;const i=best(e.id,e.r);if(i<0){miss.push(IT[e.id]?IT[e.id].n:e.id);continue;}const it=PROF.stash[i];PROF.stash[i]=null;PROF.eq[s]=it;if(s==='mochila')hubSetBag(it);}
+ for(const [id,q] of K.inv){if(!IT[id])continue;let need=q;
+  if(IT[id].st>1){for(let i=0;i<PROF.stash.length&&need>0;i++){const x=PROF.stash[i];if(!x||x.id!==id)continue;const t=Math.min(need,x.q);const left=addTo(PROF.inv,{id,q:t});const got=t-left;x.q-=got;need-=got;if(!x.q)PROF.stash[i]=null;if(left)break;}}
+  else{while(need>0){const i=best(id,0);if(i<0)break;const it=PROF.stash[i];if(addTo(PROF.inv,it))break;PROF.stash[i]=null;need--;}}
+  if(need>0)miss.push((need>1?need+'× ':'')+IT[id].n);}
+ if(Array.isArray(K.qb))PROF.qb=K.qb.slice(0,3);
+ sfx('equip');toast(miss.length?'▶ Conjunto '+(k+1)+' preparado. Faltam: '+miss.slice(0,4).join(', ')+(miss.length>4?'…':''):'▶ Conjunto '+(k+1)+' pronto!');}
+function kitsHTML(){const L=kitsList();return '<div class="ktit">🎒 Conjuntos <small>guarda o que levas e prepara-o num toque</small></div><div class="kits">'+L.map((K,k)=>{
+ const w=K&&(K.eq.arma1||K.eq.arma2),n=K?K.inv.reduce((a,[,q])=>a+q,0):0;
+ return`<div class="kit"><div class="kn">${K?(w?(wIcon(w.id,26)||IT[w.id].e):'🎒'):'—'} <b>${k+1}</b>${K?`<small>${Object.keys(K.eq).length} peças · ${n} itens</small>`:'<small>vazio</small>'}</div><div class="kb"><button class="mini" data-kit="s${k}">💾 Guardar</button>${K?`<button class="mini go" data-kit="a${k}">▶ Preparar</button>`:''}</div></div>`;}).join('')+'</div>';}
 // ---------- separadores do inventário ----------
 const ICAT=[['all','🎒','Tudo'],['arma','⚔️','Armas'],['mun','🔸','Munição'],['com','🍎','Comida'],['med','🩹','Médico'],['eq','🛡️','Equipamento'],['mod','🔧','Mods'],['out','📦','Outros']];
 let invF='all';
@@ -2025,6 +2054,7 @@ function tabsHTML(lists){const n={};for(const L of lists)for(const it of L)if(it
 function tabsShow(id){const t=$(id);if(!t||!t.querySelector)return;const b=t.querySelector('.on');if(b){const l=b.offsetLeft-t.offsetLeft;if(l<t.scrollLeft||l+b.offsetWidth>t.scrollLeft+t.clientWidth)t.scrollLeft=Math.max(0,l-12);}}
 function applyF(el,arr){if(!el||!el.children||!el.insertAdjacentHTML)return;const ch=el.children;let vis=0;for(let i=0;i<ch.length&&i<arr.length;i++){const it=arr[i],hide=invF!=='all'&&(!it||catOf(it.id)!==invF);ch[i].classList.toggle('fx',hide);if(!hide)vis++;}
  if(invF!=='all'&&!vis)el.insertAdjacentHTML('beforeend','<div class="fxe">Nada desta categoria aqui.</div>');}
+if(document.addEventListener)document.addEventListener('click',e=>{const kb=e.target.closest&&e.target.closest('[data-kit]');if(kb&&state==='hub'){const v=kb.dataset.kit,k=+v[1];if(v[0]==='s'){if(kitsList()[k]&&!kb.dataset.ok){kb.dataset.ok=1;kb.textContent='Substituir?';setTimeout(()=>{delete kb.dataset.ok;},2500);return;}kitSave(k);}else kitApply(k);hubSel=null;renderHub();saveGame();}});
 if(document.addEventListener)document.addEventListener('click',e=>{const x=e.target.closest&&e.target.closest('[data-qbx]');if(x){const q=qbList(),k=+x.dataset.qbx;if(q[k]){q[k]=null;sfx('ui');}else toast('Toca num consumível e escolhe ⚡ Barra rápida');if(state==='hub')renderHub();else if(state==='inv')renderInv();renderQB(true);return;}});
 if(document.addEventListener)document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('[data-cat]');if(!b)return;invF=b.dataset.cat;sfx('ui');
  if(state==='hub')renderHub();else if(state==='inv')renderInv();});
@@ -2188,7 +2218,7 @@ function renderHub(){
  $('hEq').innerHTML=SLOTS.map(k=>slotHTML(PROF.eq[k],SLOTN[k],`data-he="${k}"`,hubSel&&hubSel.k===k)).join('');
  $('hInv').innerHTML=PROF.inv.map((it,i)=>slotHTML(it,'',`data-hi="${i}"`,hubSel&&hubSel.w==='i'&&hubSel.i===i,i>=BASE_INV)).join('');
  $('hSt').innerHTML=PROF.stash.map((it,i)=>slotHTML(it,'',`data-hs="${i}"`,hubSel&&hubSel.w==='s'&&hubSel.i===i)).join('');
- $('qbH').innerHTML=qbRowHTML([PROF.inv]);$('tabH').innerHTML=tabsHTML([PROF.inv,PROF.stash]);tabsShow('tabH');applyF($('hInv'),PROF.inv);applyF($('hSt'),PROF.stash);
+ $('hKits').innerHTML=kitsHTML();$('qbH').innerHTML=qbRowHTML([PROF.inv]);$('tabH').innerHTML=tabsHTML([PROF.inv,PROF.stash]);tabsShow('tabH');applyF($('hInv'),PROF.inv);applyF($('hSt'),PROF.stash);
  $('hInvN').textContent=`${PROF.inv.filter(Boolean).length}/${PROF.inv.length}`;
  $('hStN').textContent=`${PROF.stash.filter(Boolean).length}/${stashCap()}`;{const b=$('hArm');if(b){const lv=PROF.base.arm||0;b.textContent=lv<2?'⬆️ Ampliar':'📦 Máx.';}}
  const S=stats(PROF.eq);
