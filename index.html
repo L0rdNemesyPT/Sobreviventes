@@ -662,7 +662,7 @@ function useItem(id){const u=IT[id].u;if(!u)return;
  if(P.x)burst(P.x,P.y,u.hp?'#ff8080':'#9fe870',8,90);}
 function uText(u){return[u.fome>0?'+'+u.fome+' fome':'',u.sede>0?'+'+u.sede+' sede':'',u.sede<0?u.sede+' sede':'',u.hp?'+'+u.hp+' vida':'',u.cure?'cura veneno':'',
  u.regen?`+${u.regen[0]} vida/s durante ${u.regen[1]}s`:'',u.spd?`+${Math.round(u.spd[0]*100)}% velocidade durante ${u.spd[1]}s`:'',u.immune?`imune ao veneno ${u.immune}s`:'',u.raw?'pode envenenar':''].filter(Boolean);}
-function dropGround(x,y,it,nop){const g={x:x+mr(-12,12),y:y+mr(-12,12),it,nop:nop||0};items.push(g);if(typeof MP!=='undefined')mpGiAdd(g);}
+function dropGround(x,y,it,nop,mine){const g={x:x+mr(-12,12),y:y+mr(-12,12),it,nop:nop||0};if(mine){const a=P?P.ang:0;g.x=x+Math.cos(a)*34+mr(-6,6);g.y=y+Math.sin(a)*34+mr(-6,6);g.away=1;}items.push(g);if(typeof MP!=='undefined')mpGiAdd(g);}
 
 // ---------- jogo ----------
 let mpJoin=0;
@@ -1550,7 +1550,7 @@ function updAnimals(dt,S){
   if(d>2200)a.dead=true;}
  animals=animals.filter(a=>!a.dead);}
 function drawAnimal(a){
- if(ATL.ok){const h=drawCreature(a,a.k,a.ang);if(a.hp<a.max)hpBar(a.x,a.y+a.r*.8-h-6,Math.max(24,a.r*2+8),a.hp/a.max);if(a.angry>0){cx.font='bold 16px sans-serif';cx.fillStyle='#ff4040';cx.fillText('!',a.x,a.y+a.r*.8-h-16);}return;}
+ if(ATL.ok){const h=drawCreature(a,a.k,a.ang);if(a.hp<a.max)qBar(a.x,a.y+a.r*.8-h-6,Math.max(24,a.r*2+8),a.hp/a.max);if(a.angry>0){cx.font='bold 16px sans-serif';cx.fillStyle='#ff4040';cx.fillText('!',a.x,a.y+a.r*.8-h-16);}return;}
  const at=AT[a.k],r=a.r,c=a.hitT>0?'#fff':at.c,run=a.flee>0||a.angry>0;cx.save();cx.translate(a.x,a.y);cx.rotate(a.ang);
  cx.fillStyle='rgba(0,0,0,.25)';cx.beginPath();cx.ellipse(2,3,r*1.3,r*.8,0,0,7);cx.fill();
  const ph=Math.sin(time*(run?16:6)+a.x*.1)*(run?3:1);
@@ -1561,7 +1561,7 @@ function drawAnimal(a){
   cx.fillStyle='#f0e0c0';cx.beginPath();cx.arc(-r*1.15,0,3,0,7);cx.fill();}
  else{cx.fillStyle='#f0f0e0';cx.fillRect(r*1.5,-4,4,2);cx.fillRect(r*1.5,2,4,2);cx.fillStyle='#2a1e14';cx.fillRect(-r*.4,-1,r*1.3,2);}
  cx.fillStyle='#111';cx.beginPath();cx.arc(r*1.35,-r*.22,1.5,0,7);cx.arc(r*1.35,r*.22,1.5,0,7);cx.fill();cx.restore();
- if(a.hp<a.max)hpBar(a.x,a.y-a.r-10,a.r*2+8,a.hp/a.max);
+ if(a.hp<a.max)qBar(a.x,a.y-a.r-10,a.r*2+8,a.hp/a.max);
  if(a.angry>0){cx.font='bold 16px sans-serif';cx.fillStyle='#ff4040';cx.fillText('!',a.x,a.y-a.r-20);}}
 function drawNpc(n){
  const d=Math.hypot(n.x-P.x,n.y-P.y);if(d<400)n.ang=Math.atan2(P.y-n.y,P.x-n.x);
@@ -2002,9 +2002,9 @@ $('inv').addEventListener('click',e=>{
    const bagI=a==='uneq'?inv.slice(0,BASE_INV).indexOf(null):-1;
    if(a==='uneq'&&bagI<0){toast('Inventário cheio');return;}
    if(inv.slice(BASE_INV).some(Boolean)){toast('Esvazia primeiro os espaços da mochila');return;}
-   P.eq.mochila=null;fitInv(BASE_INV);if(a==='uneq'){inv[bagI]=it;sel={i:bagI};}else{dropGround(P.x,P.y,it,2);sel=null;}}
+   P.eq.mochila=null;fitInv(BASE_INV);if(a==='uneq'){inv[bagI]=it;sel={i:bagI};}else{dropGround(P.x,P.y,it,2,1);sel=null;}}
   else if(a==='uneq'){const i=inv.indexOf(null);if(i<0){toast('Inventário cheio');return;}inv[i]=it;P.eq[sel.eq]=null;sel={i};sfx('equip');}
-  else if(a==='drop'){dropGround(P.x,P.y,it,2);P.eq[sel.eq]=null;sel=null;}
+  else if(a==='drop'){dropGround(P.x,P.y,it,2,1);P.eq[sel.eq]=null;sel=null;}
  }else{const it=inv[sel.i],d=IT[it.id];
   if(a==='e1'||a==='e2'||a==='eq'){const k=a==='e1'?'arma1':a==='e2'?'arma2':d.s;const old=P.eq[k];
    if(k==='mochila'){const cap=invCap(it);if(sel.i>=cap||inv.slice(cap).some((x,j)=>x&&cap+j!==sel.i)){toast('Não cabe: esvazia os últimos espaços primeiro');return;}
@@ -2013,7 +2013,7 @@ $('inv').addEventListener('click',e=>{
    sel={eq:k};sfx('equip');}
   else if(a==='use'){if(it.id==='granada'){closeInv();throwNade();return;}
    if(it.id==='bau'){closeInv();toggleBuild(true);buildSel='bauc';renderBuild();toast('📦 Toca no chão onde queres pôr o baú');return;}useItem(it.id);it.q--;if(!it.q){inv[sel.i]=null;sel=null;}}
-  else if(a==='drop'){dropGround(P.x,P.y,it,2);inv[sel.i]=null;sel=null;}
+  else if(a==='drop'){dropGround(P.x,P.y,it,2,1);inv[sel.i]=null;sel=null;}
  }
  renderInv();
 });
@@ -2564,7 +2564,7 @@ function update(dt){
  clouds=clouds.filter(c=>c.t>0);
 
  // apanhar itens
- for(const g of items){g.nop-=dt;if(g.nop>0)continue;
+ for(const g of items){g.nop-=dt;if(g.away){if(Math.hypot(g.x-P.x,g.y-P.y)>80)g.away=0;continue;}if(g.nop>0)continue;
   if(Math.hypot(g.x-P.x,g.y-P.y)<(solidAt(g.x/TS|0,g.y/TS|0,false)?62:28)){
    const d=IT[g.it.id];
    if(autoEquip(g.it)){toast(`Equipado: ${d.n} ${isGear(g.it.id)?RARE[g.it.r||0]:''}`);sfx((g.it.r||0)>=3?'rare':'equip');burst(g.x,g.y,rc(g.it),10,120);g.take=1;mpGp(g,0);continue;}
@@ -2758,7 +2758,7 @@ for(const r of regrow){if(r.t!=='tree'&&r.t!=='rock')continue;const x=(r.i%W)*TS
  // zombies
  drawTrees(0);
  for(const z of [...zs].sort((a,b)=>a.y-b.y)){const zt=ZT[z.k];
-  if(ATL.ok){const h=drawCreature(z,zKind(z),z.ang);if(z.hp<z.max)hpBar(z.x,z.y+z.r*.8-h-6,Math.max(30,z.r*2+8),z.hp/z.max);continue;}
+  if(ATL.ok){const h=drawCreature(z,zKind(z),z.ang);if(z.hp<z.max)qBar(z.x,z.y+z.r*.8-h-6,Math.max(30,z.r*2+8),z.hp/z.max);continue;}
   cx.save();cx.translate(z.x,z.y);cx.rotate(z.ang);
   const reach=z.atk>0?6:0;cx.fillStyle=z.hitT>0?'#fff':zt.c;
   cx.beginPath();cx.arc(z.r*.75+reach,-z.r*.6,z.r*.32,0,7);cx.arc(z.r*.75+reach,z.r*.6,z.r*.32,0,7);cx.fill();
@@ -2767,14 +2767,14 @@ for(const r of regrow){if(r.t!=='tree'&&r.t!=='rock')continue;const x=(r.i%W)*TS
   cx.strokeStyle='rgba(0,0,0,.4)';cx.lineWidth=2;cx.stroke();
   cx.fillStyle=z.k==='veneno'?'#e9ff6a':'#ff3030';cx.fillRect(z.r*.35,-z.r*.35,3,3);cx.fillRect(z.r*.35,z.r*.25,3,3);
   cx.restore();
-  if(z.hp<z.max)hpBar(z.x,z.y-z.r-10,z.r*2+8,z.hp/z.max);}
+  if(z.hp<z.max)qBar(z.x,z.y-z.r-10,z.r*2+8,z.hp/z.max);}
  for(const a of animals)if(a.x>vx0&&a.x<vx1&&a.y>vy0&&a.y<vy1)drawAnimal(a);
  for(const n of npcs)if(n.x>vx0&&n.x<vx1&&n.y>vy0&&n.y<vy1)drawNpc(n);
  drawMil(vx0,vx1,vy0,vy1);
  cx.textBaseline='middle';cx.textAlign='center';
  // jogador
  mpDraw();drawPlayer();
- if(P.barT>0){cx.globalAlpha=Math.min(1,P.barT);hpBar(P.x,ATL.ok?P.y+P.r*.8-(P.sprH||46)-8:P.y-P.r-14,40,P.hp/P.maxhp);cx.globalAlpha=1;}
+ if(P.hp>0&&(P.barT>0||P.hp<P.maxhp-.5))qBar(P.x,ATL.ok?P.y+P.r*.8-(P.sprH||46)-8:P.y-P.r-14,40,P.hp/P.maxhp,P.barT>0?1:.8);
  // erva alta (dobra-se à volta de quem passa)
  drawGrass(tx0,tx1,ty0,ty1,hw,hh,camx,camy);
  // árvores à frente do jogador
@@ -2827,7 +2827,8 @@ for(const r of regrow){if(r.t!=='tree'&&r.t!=='rock')continue;const x=(r.i%W)*TS
  for(const l of lights){const a=l.t/l.ml*.45,g=cx.createRadialGradient(l.x,l.y,0,l.x,l.y,l.r*.6);g.addColorStop(0,`rgba(${l.c},${a})`);g.addColorStop(1,`rgba(${l.c},0)`);cx.fillStyle=g;cx.fillRect(l.x-l.r,l.y-l.r,l.r*2,l.r*2);}
  cx.globalCompositeOperation='source-over';
  if(P&&MP.room)mpDrawNames();
- if(P)drawName(P.x,ATL.ok?P.y+P.r*.8-(P.sprH||46)-(P.barT>0?16:4):P.y-P.r-18,PROF&&PROF.name,'#bff0c0');
+ flushBars();
+ if(P)drawName(P.x,ATL.ok?P.y+P.r*.8-(P.sprH||46)-(P.hp>0&&(P.barT>0||P.hp<P.maxhp-.5)?16:4):P.y-P.r-18,PROF&&PROF.name,'#bff0c0');
  drawLeaves();drawEventsSky();
  cx.font='bold 14px Inter,sans-serif';
  for(const t of texts){cx.font=t.sm?'bold 11px Inter,sans-serif':t.vy?'900 17px Inter,sans-serif':'bold 14px Inter,sans-serif';cx.globalAlpha=Math.min(1,t.l*2);cx.fillStyle='#000';cx.fillText(t.t,t.x+1,t.y+1);cx.fillStyle=t.c;cx.fillText(t.t,t.x,t.y);}cx.globalAlpha=1;
@@ -2855,6 +2856,8 @@ for(const r of regrow){if(r.t!=='tree'&&r.t!=='rock')continue;const x=(r.i%W)*TS
   const g=cx.createRadialGradient(VW/2,VH/2,Math.min(VW,VH)*.3,VW/2,VH/2,Math.max(VW,VH)*.7);g.addColorStop(0,'rgba(160,0,0,0)');g.addColorStop(1,`rgba(160,0,0,${a})`);cx.fillStyle=g;cx.fillRect(0,0,VW,VH);}
  if(P.poison>0){cx.fillStyle='rgba(120,40,170,.12)';cx.fillRect(0,0,VW,VH);}
 }
+const BARS=[];function qBar(x,y,w,f,a){BARS.push([x,y,w,f,a==null?1:a]);}
+function flushBars(){for(const b of BARS){cx.globalAlpha=b[4];hpBar(b[0],b[1],b[2],b[3]);}cx.globalAlpha=1;BARS.length=0;}
 function hpBar(x,y,w,f){f=clamp(f,0,1);cx.fillStyle='rgba(0,0,0,.75)';cx.fillRect(x-w/2-1.5,y-1.5,w+3,8);
  cx.fillStyle=f>.6?'#4fd04f':f>.3?'#e0c040':'#e04a3a';cx.fillRect(x-w/2,y,w*f,5);cx.fillStyle='rgba(255,255,255,.25)';cx.fillRect(x-w/2,y,w*f,2);}
 function drawGrass(tx0,tx1,ty0,ty1,hw,hh,camx,camy){
