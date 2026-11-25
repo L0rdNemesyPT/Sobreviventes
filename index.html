@@ -3297,13 +3297,20 @@ function qbList(){PROF.qb=Array.isArray(PROF.qb)?PROF.qb.slice(0,3).map(id=>IT[i
 function qbToggle(id){const q=qbList(),j=q.indexOf(id);if(j>=0){q[j]=null;toast('Tirado da barra rápida');}else{let k=q.indexOf(null);if(k<0){q.shift();q.push(null);k=2;}q[k]=id;toast('⚡ '+IT[id].n+' na barra rápida');}renderQB(true);}
 function qbRowHTML(lists){const q=qbList();const cnt=id=>{let n=0;for(const L of lists)for(const x of L)if(x&&x.id===id)n+=x.q||1;return n;};
  return '<span>⚡ Barra<br>rápida</span>'+q.map((id,k)=>id?`<button class="qs f" data-qbx="${k}">${wIcon(id,28)||IT[id].e}<b>${cnt(id)}</b><i>✕</i></button>`:`<button class="qs" data-qbx="${k}">＋</button>`).join('')+`<small>${q.some(Boolean)?'Toca para tirar':'Toca num consumível e escolhe ⚡'}</small>`;}
+// quando um item da barra acaba, entra outro do mesmo tipo (o mais parecido)
+function qbRefill(k){const q=qbList(),id=q[k];if(!id||!P||!inRaid()||inv.some(x=>x&&x.id===id))return false;
+ const c=catOf(id),u=IT[id].u||{},val=v=>(v.hp||0)*2+(v.fome||0)+(v.sede||0);let best=null,bd=1e9;
+ for(const x of inv){if(!x||q.includes(x.id)||catOf(x.id)!==c||IT[x.id].s!=='use'||x.id==='bau')continue;
+  const v=IT[x.id].u||{};const d=Math.abs(val(v)-val(u))+((u.sede>0)!==(v.sede>0)&&c==='com'?25:0);if(d<bd){bd=d;best=x.id;}}
+ if(!best)return false;q[k]=best;toast('⚡ '+IT[id].n+' acabou → '+IT[best].n);return true;}
 function qbUse(k){if(state!=='play'||!P||P.hp<=0)return;const id=qbList()[k];if(!id)return toast('Põe um item aqui: abre a mochila, toca num consumível e escolhe ⚡ Barra rápida');
  const i=inv.findIndex(x=>x&&x.id===id);if(i<0){sfx('ui');return toast('Já não tens '+IT[id].n);}
  if(id==='granada'){throwNade();renderQB(true);return;}
- useItem(id);inv[i].q--;if(!inv[i].q)inv[i]=null;renderQB(true);}
+ useItem(id);inv[i].q--;if(!inv[i].q)inv[i]=null;qbRefill(k);renderQB(true);}
 let qbKey='';
 function renderQB(force){const el=$('qbar');if(!el)return;const on=!!(P&&state==='play'&&inRaid()&&PROF);el.classList.toggle('hide',!on);if(!on)return;
- const q=qbList(),key=q.map(id=>id?id+':'+ammo(id):'-').join('|');if(!force&&key===qbKey)return;qbKey=key;
+ const q=qbList();let key=q.map(id=>id?id+':'+ammo(id):'-').join('|');if(!force&&key===qbKey)return;
+ for(let k=0;k<3;k++)if(q[k]&&!ammo(q[k]))qbRefill(k);key=q.map(id=>id?id+':'+ammo(id):'-').join('|');qbKey=key;
  el.innerHTML=q.map((id,k)=>{if(!id)return`<button class="qb e" data-qb="${k}">＋</button>`;const n=ammo(id);return`<button class="qb${n?'':' z'}" data-qb="${k}">${wIcon(id,30)||IT[id].e}<b>${n}</b></button>`;}).join('');}
 // ---------- locais especiais: hospital, esquadra, supermercado, bomba de gasolina ----------
 let pois=[],poles=[],sparks=[],jams=[];
