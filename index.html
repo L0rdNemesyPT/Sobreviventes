@@ -760,18 +760,18 @@ const CONT={
  box:{n:'Caixa de Cartão',hp:12,loot:'box',c:[1,2],hit:'soft',brk:'rip',col:'#c49a5c'},
  bag:{n:'Mala',hp:15,loot:'bag',c:[1,3],hit:'soft',brk:'cloth',col:'#6a4a7a'},
  gcase:{n:'Mala de Armas',hp:45,loot:'gcase',c:[1,2],hit:'metal',brk:'clank',col:'#2a2a2a'},
- cab:{n:'Armário',hp:40,loot:'cab',c:[1,3],hit:'crate',brk:'door',col:'#5a3a22',open:'cab_o'},
+ cab:{n:'Armário',hp:40,loot:'cab',c:[2,3],hit:'crate',brk:'door',col:'#5a3a22',open:'cab_o'},
  dump:{n:'Contentor do Lixo',hp:40,loot:'dump',c:[1,3],hit:'metal',brk:'clank',col:'#3a5a2a',open:'dump_o'},
  lixo:{n:'Sacos do Lixo',hp:10,loot:'lixo',c:[1,2],hit:'soft',brk:'rip',col:'#222'},
  drop:{n:'Lançamento Aéreo',hp:40,loot:'drop',c:[3,5],hit:'metal',brk:'clank',col:'#556b2f',open:'drop_o'},
- kitch:{n:'Bancada da Cozinha',hp:35,loot:'kitch',c:[1,3],hit:'crate',brk:'door',col:'#c8c0a8',open:'kitch_o'},
- shelf:{n:'Estante',hp:30,loot:'shelf',c:[1,2],hit:'crate',brk:'crack',col:'#6a4a2a',open:'shelf_o'},
- desk:{n:'Secretária',hp:30,loot:'desk',c:[1,2],hit:'crate',brk:'door',col:'#6a4a2a',open:'desk_o'},
- ward:{n:'Roupeiro',hp:40,loot:'cab',c:[1,3],hit:'crate',brk:'door',col:'#4a3020',open:'ward_o'},
- dresser:{n:'Cómoda',hp:35,loot:'cab',c:[1,2],hit:'crate',brk:'door',col:'#8a5a2a',open:'dresser_o'},
- washer:{n:'Máquina de Lavar',hp:45,loot:'bag',c:[1,2],hit:'metal',brk:'clank',col:'#dcdcdc',open:'washer_o'},
- pc:{n:'Computador',hp:30,loot:'desk',c:[1,3],hit:'crate',brk:'door',col:'#5a3a22',open:'pc_o'},
- fridge:{n:'Frigorífico',hp:45,loot:'fridge',c:[2,4],hit:'metal',brk:'clank',col:'#dcdcdc',open:'fridge_o'}
+ kitch:{n:'Bancada da Cozinha',hp:35,loot:'kitch',c:[2,4],hit:'crate',brk:'door',col:'#c8c0a8',open:'kitch_o'},
+ shelf:{n:'Estante',hp:30,loot:'shelf',c:[2,3],hit:'crate',brk:'crack',col:'#6a4a2a',open:'shelf_o'},
+ desk:{n:'Secretária',hp:30,loot:'desk',c:[2,3],hit:'crate',brk:'door',col:'#6a4a2a',open:'desk_o'},
+ ward:{n:'Roupeiro',hp:40,loot:'cab',c:[2,4],hit:'crate',brk:'door',col:'#4a3020',open:'ward_o'},
+ dresser:{n:'Cómoda',hp:35,loot:'cab',c:[2,3],hit:'crate',brk:'door',col:'#8a5a2a',open:'dresser_o'},
+ washer:{n:'Máquina de Lavar',hp:45,loot:'bag',c:[2,3],hit:'metal',brk:'clank',col:'#dcdcdc',open:'washer_o'},
+ pc:{n:'Computador',hp:30,loot:'desk',c:[2,4],hit:'crate',brk:'door',col:'#5a3a22',open:'pc_o'},
+ fridge:{n:'Frigorífico',hp:45,loot:'fridge',c:[2,5],hit:'metal',brk:'clank',col:'#dcdcdc',open:'fridge_o'}
 };
 const FURN={drop_o:1,cab_o:1,fridge_o:1,dump_o:1,kitch_o:1,shelf_o:1,desk_o:1,ward_o:1,dresser_o:1,washer_o:1,pc_o:1};
 const BAGC=['#5a3a6a','#7a2a2a','#2a4a6a','#3a3a3a','#6a5a2a'];
@@ -1158,6 +1158,7 @@ function furnishHouse(h,HR){
   const seen=new Set([dIn[1]*W+dIn[0]]),st=[dIn];let n=0;if(obj[dIn[1]*W+dIn[0]])return false;
   while(st.length){const [cx,cy]=st.pop();n++;for(const [a,b] of [[1,0],[-1,0],[0,1],[0,-1]]){const nx=cx+a,ny=cy+b,i=ny*W+nx;if(!inB(nx,ny)||seen.has(i)||!FL(i)||obj[i])continue;seen.add(i);st.push([nx,ny]);}}
   return n>=tot;};
+ const roomy=R=>{for(const [x,y] of R.t){const i=y*W+x;if(obj[i])continue;let n=0;for(const j of [i-1,i+1,i-W,i+W])if(FL(j)&&!obj[j])n++;if(n<2&&!keep.has(i))return false;}return true;};
  const setO=(x,y,s,w,hh,cont)=>{const m=y*W+x;obj[m]=cont?{t:cont,hp:CONT[cont].hp}:{t:'prop',s,w,cv:0};for(let r=0;r<hh;r++)for(let k=0;k<w;k++)if(r||k)obj[(y-r)*W+x+k]={t:'propx',cv:0,m};};
  const clr=(x,y,w,hh)=>{for(let r=0;r<hh;r++)for(let k=0;k<w;k++)obj[(y-r)*W+x+k]=null;};
  const free=(R,x,y,w,hh)=>{for(let r=0;r<hh;r++)for(let k=0;k<w;k++){const xx=x+k,yy=y-r,i=yy*W+xx;if(!inB(xx,yy)||!FL(i)||obj[i]||keep.has(i)||rid[(yy-y0)*iw+xx-x0]!==R.n)return false;}return true;};
@@ -1167,14 +1168,15 @@ function furnishHouse(h,HR){
    const side=WL(tiles[by*W+x-1])||WL(tiles[by*W+x+w]);
    const mid=!top&&!side&&!WL(tiles[(by+1)*W+x]);
    if(wall==='top'?top:wall==='side'?side:wall==='mid'?mid:(top||side))out.push([x,by]);}return out;};
- const put=(R,s,w,hh,wall,cont,near)=>{let c=spots(R,w,hh,wall);if(!c.length&&wall!=='mid')c=spots(R,w,hh,'any');if(!c.length)return null;
+ for(const R of rooms){const xs=R.t.map(t=>t[0]),ys=R.t.map(t=>t[1]),rw=Math.max(...xs)-Math.min(...xs)+1,rh=Math.max(...ys)-Math.min(...ys)+1;R.mn=Math.min(rw,rh);R.used=0;R.cap=Math.max(3,Math.floor(R.t.length*(R.t.length<=8?.55:R.t.length<=14?.48:.42)));}
+ const put=(R,s,w,hh,wall,cont,near)=>{if(R.used+w*hh>R.cap-(cont?0:Math.min(2,R.cap>>1)))return null;if(wall==='mid'&&R.mn<5)return null;let c=spots(R,w,hh,wall);if(!c.length&&wall!=='mid')c=spots(R,w,hh,'any');if(!c.length)return null;
   if(near){c.sort((a,b)=>Math.abs(a[0]-near[0])+Math.abs(a[1]-near[1])-Math.abs(b[0]-near[0])-Math.abs(b[1]-near[1]));c=c.slice(0,2);}
-  for(let t=0;t<4&&c.length;t++){const j=near?0:ri3(0,c.length-1),[x,y]=c.splice(j,1)[0];setO(x,y,s,w,hh,cont);if(reach())return[x,y];clr(x,y,w,hh);}return null;};
+  for(let t=0;t<4&&c.length;t++){const j=near?0:ri3(0,c.length-1),[x,y]=c.splice(j,1)[0];setO(x,y,s,w,hh,cont);if(reach()&&roomy(R)){R.used+=w*hh;return[x,y];}clr(x,y,w,hh);}return null;};
  const floor=(R,v)=>{for(const [x,y] of R.t)fvar[y*W+x]=v;};
  const sofa=HR()<.5?'f_sofa':'f_sofa2',arm2=HR()<.5;
  const kitchen=(R,big)=>{const k=put(R,'kitch',2,1,'top','kitch');if(k){put(R,'f_stove',1,1,'top',null,[k[0]+2,k[1]]);put(R,'fridge',1,1,'any','fridge',[k[0]-1,k[1]]);}else{put(R,'f_stove',1,1,'any');put(R,'fridge',1,1,'any','fridge');}
   if(big&&R.t.length>=16)put(R,'f_dtable',2,2,'mid');if(R.t.length>=14&&HR()<.4)put(R,'washer',1,1,'any','washer');};
- const living=R=>{put(R,'f_tv',1,1,'top');put(R,sofa,2,1,'any');if(HR()<.6)arm2?put(R,'f_arm2',2,1,'side'):put(R,'f_arm',1,1,'side');if(HR()<.5)put(R,'shelf',1,1,'any','shelf');
+ const living=R=>{put(R,sofa,2,1,'any');put(R,'f_tv',1,1,'top');if(HR()<.5)put(R,'shelf',1,1,'any','shelf');if(HR()<.5)arm2?put(R,'f_arm2',2,1,'side'):put(R,'f_arm',1,1,'side');
   if(HR()<.5)put(R,'f_plant',1,1,'any');if(HR()<.4)put(R,'f_lamp',1,1,'side');
   if(R.t.length>=16){const t=put(R,'f_table',2,1,'mid');if(t)addDeco('d_rug',(t[0]+1)*TS,t[1]*TS+24,.5,.5);}};
  const bedroom=R=>{if(!(R.t.length>=14&&HR()<.6&&put(R,'f_dbed',2,2,'top')))put(R,'f_bed',1,2,'top');
@@ -1197,8 +1199,8 @@ function furnishHouse(h,HR){
  const CT={box:1,bag:1,cab:1,kitch:1,shelf:1,desk:1,fridge:1,gcase:1,ward:1,dresser:1,washer:1,pc:1};
  const count=()=>{let n=0;for(let y=y0;y<=y1;y++)for(let x=x0;x<=x1;x++){const o=obj[y*W+x];if(o&&CT[o.t])n++;}return n;};
  for(;gc>0;gc--){for(const R of rooms.slice().reverse())if(put(R,'gcase',1,1,'any','gcase'))break;}
- const area=rooms.reduce((a,R)=>a+R.t.length,0),want=area<=9?2:area<=14?3+(HR()<.5?1:0):4+(HR()<.5?1:0)+(rooms.length>2?1:0);
- for(let t=0;t<10&&count()<want;t++){const R=rooms[ri3(0,N-1)],k=['cab','box','bag','shelf','ward','dresser','box','cab'][ri3(0,7)];put(R,k,1,1,'any',k);}
+ const area=rooms.reduce((a,R)=>a+R.t.length,0),want=area<=9?2:area<=16?3:4+(rooms.length>2?1:0);
+ for(let t=0;t<25&&count()<want;t++){const R=rooms[ri3(0,N-1)],k=['cab','box','bag','shelf','ward','dresser','box','cab'][ri3(0,7)];put(R,k,1,1,'any',k);}
 }
 function genHouses(){
  fvar=new Uint8Array(W*H);
