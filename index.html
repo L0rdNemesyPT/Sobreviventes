@@ -496,7 +496,7 @@ function gen(seed){
    else if(o.t==='crate'&&!zone[i]&&tiles[i]===T.GRASS){const r=FR();if(r<.4)obj[i]={t:'bag',hp:15};else if(r<.6)obj[i]={t:'box',hp:12};}}
   for(let i=W;i<W*H-W;i++)if(tiles[i]===T.DIRT&&!zone[i]&&!obj[i]&&FR()<.004)obj[i]={t:'bag',hp:15};
  }
- genCamps();
+ genCamps();exts=exts.slice(0,5);genMil();
  genDeco(forest);chunks.clear();
  baseT=obj.map(o=>o?o.t:null);
  {const GR=mulberry(seed^0x13579bd);tgrass=new Uint8Array(W*H);
@@ -577,6 +577,7 @@ function openMap(){if(state!=='play')return;state='map';$('fullmap').classList.r
  c.fillStyle='#fff';c.fillRect(P.x/TS-2,P.y/TS-2,4,4);c.strokeStyle='#ff4';c.lineWidth=1;c.strokeRect(P.x/TS-4,P.y/TS-4,8,8);
  c.font='5px sans-serif';c.textAlign='center';c.fillStyle='#fff';for(const s of setts)c.fillText(s.n,s.cx,s.y-1);
  for(const n of npcs){c.fillStyle='#ffd25a';c.fillRect(n.x/TS-1.5,n.y/TS-1.5,3,3);c.fillStyle='#ffe9a0';c.fillText('💬 '+n.n,n.x/TS,n.y/TS-4);}
+ if(mil){c.strokeStyle='#b8e07a';c.lineWidth=1;c.beginPath();c.arc(mil.tx,mil.ty,mil.R+1,0,7);c.stroke();c.fillStyle='#d8f0a0';c.fillText('🎖️ Acampamento Militar',mil.tx,mil.ty-mil.R-3);}
  for(const e of exts){c.fillStyle='#4f4';c.beginPath();c.arc(e.tx,e.ty,3,0,7);c.fill();c.fillStyle='#bfb';c.fillText('🚁 '+e.n,e.tx,e.ty-5);}
  evMini(c,1,0,0,true);mpMini(c,1,0,0,true);}
 mini.onclick=openMap;$('fullmap').onclick=()=>{$('fullmap').classList.add('hide');state='play';};
@@ -1480,6 +1481,7 @@ function drawAnimal(a){
  if(a.angry>0){cx.font='bold 16px sans-serif';cx.fillStyle='#ff4040';cx.fillText('!',a.x,a.y-a.r-20);}}
 function drawNpc(n){
  const d=Math.hypot(n.x-P.x,n.y-P.y);if(d<400)n.ang=Math.atan2(P.y-n.y,P.x-n.x);
+ if(n.mil&&ATL.ok){n.sp.ang=n.ang;drawSoldier(n.sp);const fy=n.y+n.r*.8,sh=n.sp.sprH||50;cx.font='bold 12px Inter,sans-serif';cx.textAlign='center';cx.fillStyle='#000';cx.fillText('🎖️ '+n.n,n.x+1,fy-sh-7);cx.fillStyle='#b8e07a';cx.fillText('🎖️ '+n.n,n.x,fy-sh-8);if(d<450){cx.font='18px sans-serif';cx.fillText('💬',n.x+18,fy-sh-24+Math.sin(time*3)*3);}return;}
  if(ATL.ok){const j=NPCSPR[Math.max(0,NPCN.indexOf(n.n))%7],nm='npc'+j+'_idle_'+(Math.floor(time*1.5+j)%2),f=ATL.f[nm];
   if(f){const sw=f[2]/ATL.ppw,sh=f[3]/ATL.ppw,fy=n.y+n.r*.8;cx.fillStyle='rgba(0,0,0,.3)';cx.beginPath();cx.ellipse(n.x,fy-2,13,5,0,0,7);cx.fill();
    cx.save();cx.translate(n.x,fy);if(Math.cos(n.ang)<0)cx.scale(-1,1);cx.drawImage(ATL.img,f[0],f[1],f[2],f[3],-sw/2,-sh,sw,sh);cx.restore();
@@ -1518,7 +1520,7 @@ function take(id,q){if(id==='#wood'){wood-=q;return;}if(id==='#stone'){stone-=q;
  for(let i=inv.length-1;i>=0&&q>0;i--){const s=inv[i];if(s&&s.id===id){const a=Math.min(q,s.q);s.q-=a;q-=a;if(!s.q)inv[i]=null;}}}
 const icn=id=>id==='#wood'?'🪵 madeira':id==='#stone'?'🪨 pedra':ie(id)+' '+IT[id].n;
 function openTrade(n){state='trade';trNpc=n;sfx('ui');$('trade').classList.remove('hide');renderTrade();}
-function renderTrade(){const n=trNpc;$('trN').innerHTML='🧔 '+n.n+' · '+ie('moeda',24)+' '+ammo('moeda');
+function renderTrade(){const n=trNpc;$('trN').innerHTML=(n.mil?'🎖️ ':'🧔 ')+n.n+' · '+ie('moeda',24)+' '+ammo('moeda');
  $('trL').innerHTML=`<div style="font-size:13px;opacity:.8">«${n.line}»</div>`+n.offers.map((o,j)=>{const ok=o.s>0&&o.give.every(([id,q])=>have(id)>=q),g=o.get,gr=rOf(g);
   return`<div class="tro"><div class="gv">Dás: ${o.give.map(([id,q])=>`<b style="color:${have(id)>=q?'#eee':'#ff6b6b'}">${q}× ${icn(id)}</b>`).join(' + ')}<br>Recebes: <b style="color:${gr>=0?RAR[gr]:'#eee'}">${g.q>1?g.q+'× ':''}${ie(g.id)} ${IT[g.id].n}${isGear(g.id)?' '+RARE[g.r||0]:''}</b><br><small style="opacity:.6">${o.s>0?'Stock: '+o.s:'Esgotado'}</small></div><button data-tr="${j}" ${ok?'':'disabled'}>Trocar</button></div>`;}).join('');}
 $('trade').addEventListener('click',e=>{
@@ -1709,7 +1711,7 @@ function spawnZ(){
  for(let n=0;n<3;n++){
   const a=Math.random()*6.28,d=mr(minD,minD+350),x=C.x+Math.cos(a)*d,y=C.y+Math.sin(a)*d;
   const tx=x/TS|0,ty=y/TS|0;if(tx<1||ty<1||tx>=W-1||ty>=H-1)continue;
-  if(solidAt(tx,ty,true))continue;
+  if(solidAt(tx,ty,true)||inMil(x,y,6))continue;
   const r=Math.random()*100,tw=Math.min(20,2+L*2),tr=14+L,tv=12+L;
   let k=r<tw?'tank':r<tw+tr?'rapido':r<tw+tr+tv?'veneno':'normal';const hm=1+(L-1)*.12;
   if(L>=2){const r2=Math.random();if(r2<.03+L*.002)k='grito';else if(r2<.07+L*.004)k='bomba';}
@@ -2460,6 +2462,7 @@ function update(dt){
   const dx=a.x-P.x,dy=a.y-P.y,d=Math.hypot(dx,dy),m=a.r+P.r;if(d<m&&d>0)move(a,dx/d*(m-d),dy/d*(m-d),true);
  }
  zs=zs.filter(z=>!z.dead);
+ updMil(dt);
 
  // nuvens de veneno
  for(const c of clouds){c.t-=dt;if(Math.hypot(P.x-c.x,P.y-c.y)<c.r){if(!P.buffs.immune&&!S.gas){P.hp-=5*dt*(1-S.def);P.poison=Math.max(P.poison,2);}}}
@@ -2672,6 +2675,7 @@ for(const r of regrow){if(r.t!=='tree'&&r.t!=='rock')continue;const x=(r.i%W)*TS
   if(z.hp<z.max)hpBar(z.x,z.y-z.r-10,z.r*2+8,z.hp/z.max);}
  for(const a of animals)if(a.x>vx0&&a.x<vx1&&a.y>vy0&&a.y<vy1)drawAnimal(a);
  for(const n of npcs)if(n.x>vx0&&n.x<vx1&&n.y>vy0&&n.y<vy1)drawNpc(n);
+ drawMil(vx0,vx1,vy0,vy1);
  cx.textBaseline='middle';cx.textAlign='center';
  // jogador
  mpDraw();drawPlayer();
@@ -3004,6 +3008,64 @@ function mpOnZ(ev,p){if(!inRaid()||p.s!==seed)return;
  else if(ev==='fx'){if(!MPC())return;if(p.k==='boom'){MP.fx=2;try{explode(+p.x,+p.y,+p.r||95,+p.d||70);if(p.c)clouds.push({x:+p.x,y:+p.y,r:85,t:5});}finally{MP.fx=0;}}}
  else if(ev==='bs'){if(!MPC())return;for(let i=0;i<Math.min(+p.pel||1,8);i++){const a=+p.a+(Math.random()-.5)*(+p.sp||0)*2;ebul.push({x:+p.x,y:+p.y,vx:Math.cos(a)*900,vy:Math.sin(a)*900,l:(+p.rg||260)/900*1.4,dmg:Math.min(+p.d||10,60)});}sfx(p.w||'pistola',+p.x,+p.y);}}
 function mpSpawnCenter(){const L=mpPeersHere().filter(q=>q.hp>0);if(!MPH()||!L.length||Math.random()<1/(L.length+1))return P;const q=L[Math.floor(Math.random()*L.length)];return{x:q.x,y:q.y};}
+// ---------- acampamento militar (1 por mapa, pequeno ou médio) ----------
+let mil=null,milBul=[];
+const MILN=['Sargento Lopes','Cabo Ventura','Soldado Matos','Soldado Reis','Cabo Antunes','Soldado Faria'],
+ MILL=['Material do exército. Paga-se em moedas.','Os rapazes tratam dos mortos. Tu tratas do negócio.','Munição fresca, direta do quartel.'];
+const MTRADES=[
+ [[['moeda',18]],{id:'brif',q:20}],[[['moeda',14]],{id:'b9',q:30}],[[['moeda',16]],{id:'cart',q:14}],
+ [[['moeda',35]],{id:'granada',q:2}],[[['moeda',22]],{id:'racao',q:2}],[[['moeda',40]],{id:'kit',q:1}],[[['moeda',20]],{id:'sacos',q:3}],[[['moeda',18]],{id:'arame',q:3}],
+ [[['moeda',85]],{pool:['colete','cap_militar','bota_mil','mochila_mil','fones_t']}],
+ [[['moeda',150]],{pool:['arm_mil','cap_nv','mascara','ghillie']}],
+ [[['moeda',120]],{pool:['ak','m4','tatica','deagle','vector']}],
+ [[['moeda',220]],{pool:['scar','sniper','m249']}],
+ [[['moeda',65]],{pool:['mira_acog','mira_holo','punho_t','carr_ext','carr_rap','carr_dup','silenc','travao','laser','bipe']}]];
+function genMil(){
+ const MR=mulberry(seed^0x5a17c0d);mil=null;milBul=[];const big=MR()<.5,R=big?7:5;
+ for(let tries=0;tries<800;tries++){
+  const x=R+8+Math.floor(MR()*(W-2*R-16)),y=R+8+Math.floor(MR()*(H-2*R-16));
+  if(setts.some(s=>x>=s.x-R-4&&x<s.x+s.w+R+4&&y>=s.y-R-4&&y<s.y+s.h+R+4))continue;
+  if(exts.some(e=>Math.hypot(e.tx-x,e.ty-y)<R+22)||camps.some(c=>Math.hypot(c.tx-x,c.ty-y)<R+14))continue;
+  let bad=false;for(let dy=-R-1;dy<=R+1&&!bad;dy++)for(let dx=-R-1;dx<=R+1;dx++){const t=tiles[(y+dy)*W+x+dx];if(t===T.WATER||t===T.ROAD||t===T.FLOOR||isWallT(t)){bad=true;break;}}if(bad)continue;
+  // limpar e pôr terra batida
+  for(let dy=-R-2;dy<=R+2;dy++)for(let dx=-R-2;dx<=R+2;dx++){const d=Math.hypot(dx,dy);if(d>R+1.6)continue;const i=(y+dy)*W+x+dx;obj[i]=null;if(d<=R+.5)tiles[i]=T.DIRT;}
+  // muro de sacos com duas entradas (este e oeste)
+  for(let dy=-R;dy<=R;dy++)for(let dx=-R;dx<=R;dx++){const d=Math.hypot(dx,dy);if(Math.abs(d-R)>.5)continue;if(Math.abs(dy)<=1&&Math.abs(dx)>=R-1)continue;obj[(y+dy)*W+x+dx]={t:'sacos',hp:450,max:450};}
+  const put=(dx,dy,o)=>{const i=(y+dy)*W+x+dx;if(!obj[i])obj[i]=o;};
+  put(-2,-2,{t:'tenda',hp:0,c:0});put(2,-3,{t:'tenda',hp:0,c:0});if(big){put(-3,2,{t:'tenda',hp:0,c:0});put(3,3,{t:'tenda',hp:0,c:4});}
+  put(0,-4+(big?0:1),{t:'mcrate',hp:30});put(-1,3,{t:'mcrate',hp:30});if(big){put(1,4,{t:'gcase',hp:45});put(-4,-1,{t:'mcrate',hp:30});}
+  put(1,1,{t:'fogueira',hp:150,max:150});
+  const M={tx:x,ty:y,x:x*TS+24,y:y*TS+24,R,big,sold:[],seen:0};
+  const posts=big?[[R-1.2,-2.2],[-R+1.2,2.2],[0,-R+1.3],[0,R-1.3]]:[[R-1.2,-2.2],[-R+1.2,2.2],[1,-R+1.3]];
+  const guns=['m4','ak','scar','m4'];
+  posts.forEach((p,j)=>{M.sold.push({x:(x+p[0])*TS+24,y:(y+p[1])*TS+24,r:15,ang:MR()*6.28,hp:100,mh:100,maxhp:100,act:1,swing:0,flash:0,hurt:0,aimT:0,mvT:0,toolT:0,cd:MR(),buffs:{},
+   eq:{armadura:{id:'arm_mil',q:1},capacete:{id:'cap_militar',q:1},arma1:{id:guns[j%4],q:1,dur:100},arma2:null},n:MILN[(1+j)%MILN.length]});});
+  // o sargento que vende
+  const offers=[],pool=MTRADES.map((_,j)=>j);
+  for(let j=0;j<8;j++){const tr=MTRADES[pool.splice(Math.floor(MR()*pool.length),1)[0]];let g=tr[1];
+   if(g.pool){const id=g.pool[Math.floor(MR()*g.pool.length)],w=RROLL.mcrate;let tot=0;for(const v of w)tot+=v;let yv=MR()*tot,rr=0;for(let q=0;q<5;q++){yv-=w[q];if(yv<=0){rr=q;break;}}g={id,q:1,r:Math.max(1,rr)};if(IT[id].w)g.dur=100;}
+   else g=Object.assign({},g);offers.push({give:tr[0],get:g,s:tr[1].pool?1:2+Math.floor(MR()*3)});}
+  const sx=(x-1)*TS+24,sy=(y+1)*TS+24;obj[(y+1)*W+x-1]=null;
+  const n={x:sx,y:sy,r:14,n:MILN[0],line:MILL[Math.floor(MR()*MILL.length)],c:'#5a6e3a',offers,ang:0,mil:1,
+   sp:{x:sx,y:sy,r:15,ang:0,hp:100,mh:100,maxhp:100,act:1,swing:0,flash:0,hurt:0,aimT:0,mvT:0,toolT:0,buffs:{},eq:{armadura:{id:'arm_mil',q:1},capacete:{id:'cap_militar',q:1},arma1:{id:'pistola',q:1,dur:100},arma2:null}}};
+  npcs.push(n);M.npc=n;mil=M;return;}
+}
+function inMil(x,y,pad){return mil&&Math.hypot(x-mil.x,y-mil.y)<(mil.R+(pad||0))*TS;}
+function updMil(dt){if(!mil)return;
+ if(!mil.seen&&inMil(P.x,P.y,3)){mil.seen=1;toast('🎖️ Acampamento militar: aqui estás seguro. O '+mil.npc.n+' vende material do exército.');}
+ const near=Math.hypot(P.x-mil.x,P.y-mil.y)<2200;
+ for(const s of mil.sold){s.cd-=dt;s.flash-=dt;s.aimT-=dt;if(!near)continue;
+  let best=null,bd=430;for(const z of zs){if(z.dead||ZT[z.k].hum&&false)continue;const d=Math.hypot(z.x-s.x,z.y-s.y);if(d<bd){bd=d;best=z;}}
+  if(!best){s.ang+=Math.sin(time*.4+s.x)*dt*.3;continue;}
+  s.ang=Math.atan2(best.y-s.y,best.x-s.x);s.aimT=.6;
+  if(s.cd<=0){const gun=s.eq.arma1.id;s.cd=gun==='scar'?.75:.55+Math.random()*.2;s.flash=.06;sfx(gun,s.x,s.y);
+   const a=s.ang+(Math.random()-.5)*.06;milBul.push({x:s.x+Math.cos(a)*26,y:s.y-14+Math.sin(a)*26,vx:Math.cos(a)*1500,vy:Math.sin(a)*1500,l:Math.min(.3,bd/1500+.02)});
+   if(!MPC()&&Math.random()<.85){MP.hitBy='mil';try{dmgZ(best,gun==='scar'?34:26,a,6);}finally{MP.hitBy=null;}}}}
+ for(const b of milBul){b.x+=b.vx*dt;b.y+=b.vy*dt;b.l-=dt;}milBul=milBul.filter(b=>b.l>0);}
+function drawSoldier(s){const me=P;P=s;try{s.sprH=drawPlayerSprite();}catch(e){}P=me;}
+function drawMil(vx0,vx1,vy0,vy1){if(!mil||!ATL.ok)return;
+ for(const s of mil.sold)if(s.x>vx0&&s.x<vx1&&s.y>vy0&&s.y<vy1)drawSoldier(s);
+ if(milBul.length){cx.globalCompositeOperation='lighter';cx.strokeStyle='rgba(255,220,120,.85)';cx.lineWidth=1.5;cx.beginPath();for(const b of milBul){cx.moveTo(b.x,b.y);cx.lineTo(b.x-b.vx*.018,b.y-b.vy*.018);}cx.stroke();cx.globalCompositeOperation='source-over';}}
 // ---------- multiplayer: itens no chão, caixas, árvores, muralhas e janelas partilhados ----------
 MP.obq=new Set();MP.giq=[];MP.gpq=[];MP.apply=0;MP.wT=0;MP.here=new Set();
 function mpShared(){return MP.ok&&inRaid()&&mpPeersHere().length>0;}
@@ -3049,7 +3111,7 @@ function mpOnW(ev,p){if(!inRaid()||p.s!==seed)return;MP.apply=1;
   setTimeout(()=>{if(!dp&&/Android/i.test(navigator.userAgent))$('instTip').classList.remove('hide');},2500);}
  $('instApp').onclick=async()=>{if(!dp)return;dp.prompt();const r=await dp.userChoice;dp=null;$('instApp').classList.add('hide');if(r.outcome==='accepted')toast('📲 App instalada! Procura o ícone no ecrã principal');};
  addEventListener('appinstalled',()=>{$('instApp').classList.add('hide');$('instTip').classList.add('hide');});}
-if(location.hash==='#debug')window.__g={MP,wComp,wOf,rlTime,magCap,inv:()=>inv,get P(){return P},get setts(){return setts},get exts(){return exts},get camps(){return camps},get zs(){return zs},get animals(){return animals},get houses(){return houses},obj:()=>obj,tiles:()=>tiles,threat,roll,LOOT,get regrow(){return regrow},spawnBand,placeBau,openBau,buildChunk,ffAt,dmgZ,mmSet,get kills(){return kills},evDrop,evHorde,evRescue,spawnBoss,mkZ,get evs(){return evs},openBase,SMP,magCap,AU,get WX(){return WX},wxNext,setWx:(k)=>{WX.k=k==='clear'?'rain':'clear';WX.t=0;},solidAt,tapAt:(x,y)=>tapAt(x,y),get houses(){return houses},get items(){return items},get baus(){return baus},get ebul(){return ebul},ZT,get state(){return state},setTime:v=>{time=v},spawnA,spawnZ,dmgZ,ATL,openInv,enterHub,startRaid,hitObj,breakWin,setPROF:p=>{PROF=p},newProf,inv:()=>inv,setTarget,explode,dropGround,openTrade};
+if(location.hash==='#debug')window.__g={MP,wComp,wOf,rlTime,magCap,inv:()=>inv,get P(){return P},get setts(){return setts},get exts(){return exts},get camps(){return camps},get mil(){return mil},get zs(){return zs},get animals(){return animals},get houses(){return houses},obj:()=>obj,tiles:()=>tiles,threat,roll,LOOT,get regrow(){return regrow},spawnBand,placeBau,openBau,buildChunk,ffAt,dmgZ,mmSet,get kills(){return kills},evDrop,evHorde,evRescue,spawnBoss,mkZ,get evs(){return evs},openBase,SMP,magCap,AU,get WX(){return WX},wxNext,setWx:(k)=>{WX.k=k==='clear'?'rain':'clear';WX.t=0;},solidAt,tapAt:(x,y)=>tapAt(x,y),get houses(){return houses},get items(){return items},get baus(){return baus},get ebul(){return ebul},ZT,get state(){return state},setTime:v=>{time=v},spawnA,spawnZ,dmgZ,ATL,openInv,enterHub,startRaid,hitObj,breakWin,setPROF:p=>{PROF=p},newProf,inv:()=>inv,setTarget,explode,dropGround,openTrade};
 }
 </script>
 </body>
