@@ -3033,7 +3033,6 @@ function genMil(){
   for(let dy=-R;dy<=R;dy++)for(let dx=-R;dx<=R;dx++){const d=Math.hypot(dx,dy);if(Math.abs(d-R)>.5)continue;if(Math.abs(dy)<=1&&Math.abs(dx)>=R-1)continue;obj[(y+dy)*W+x+dx]={t:'sacos',hp:450,max:450};}
   const put=(dx,dy,o)=>{const i=(y+dy)*W+x+dx;if(!obj[i])obj[i]=o;};
   put(-2,-2,{t:'tenda',hp:0,c:0});put(2,-3,{t:'tenda',hp:0,c:0});if(big){put(-3,2,{t:'tenda',hp:0,c:0});put(3,3,{t:'tenda',hp:0,c:4});}
-  put(0,-4+(big?0:1),{t:'mcrate',hp:30});put(-1,3,{t:'mcrate',hp:30});if(big){put(1,4,{t:'gcase',hp:45});put(-4,-1,{t:'mcrate',hp:30});}
   put(1,1,{t:'fogueira',hp:150,max:150});
   const M={tx:x,ty:y,x:x*TS+24,y:y*TS+24,R,big,sold:[],seen:0};
   const posts=big?[[R-1.2,-2.2],[-R+1.2,2.2],[0,-R+1.3],[0,R-1.3]]:[[R-1.2,-2.2],[-R+1.2,2.2],[1,-R+1.3]];
