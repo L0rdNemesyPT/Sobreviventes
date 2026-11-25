@@ -1114,6 +1114,69 @@ const FH=58,CW={kitch:2,kitch_o:2};
 const FS={brick:['f_brick','f_brickv','f_brickp'],pick:['f_pick','f_pickv',null],hedge:['f_hedge','f_hedgev',null]};
 function putFurn(x,y,s,w,h,cont){w=w||1;h=h||1;for(let r=0;r<h;r++)for(let k=0;k<w;k++){const i=(y-r)*W+x+k;if(tiles[i]!==T.FLOOR||obj[i])return false;}
  const m=y*W+x;obj[m]=cont?{t:cont,hp:CONT[cont].hp}:{t:'prop',s,w,cv:0};for(let r=0;r<h;r++)for(let k=0;k<w;k++)if(r||k)obj[(y-r)*W+x+k]={t:'propx',cv:0,m};return true;}
+// ---------- recheio das casas por divisões ----------
+function furnishHouse(h,HR){
+ const ri3=(a,b)=>a+Math.floor(HR()*(b-a+1)),x0=h.x+1,x1=h.x+h.w-2,y0=h.y+1,y1=h.y+h.h-2;
+ const inB=(x,y)=>x>=x0&&x<=x1&&y>=y0&&y<=y1,FL=i=>tiles[i]===T.FLOOR,WL=t=>isWallT(t)||t===T.WIN||t===T.WINB;
+ // edifícios militares ficam como estão
+ for(let y=y0;y<=y1;y++)for(let x=x0;x<=x1;x++){const o=obj[y*W+x];if(o&&o.t==='mcrate')return;}
+ let gc=0;for(let y=y0;y<=y1;y++)for(let x=x0;x<=x1;x++){const i=y*W+x;if(!FL(i))continue;const o=obj[i];if(o&&o.t==='gcase')gc++;obj[i]=null;}
+ // divisória quando a casa é grande e ainda não tem paredes por dentro
+ let inner=false;for(let y=y0;y<=y1;y++)for(let x=x0;x<=x1;x++)if(WL(tiles[y*W+x]))inner=true;
+ const iw=x1-x0+1,ih=y1-y0+1;
+ if(!inner&&iw>=5&&ih>=4&&HR()<.8){
+  const cand=[];for(let px=x0+2;px<=x1-2;px++)if(Math.abs(px-h.door[0])>1)cand.push(px);
+  if(cand.length){const px=cand[ri3(0,cand.length-1)],dy=ri3(y0,y1);
+   for(let y=y0;y<=y1;y++){const i=y*W+px;tiles[i]=y===dy?T.FLOOR:T.WALL;obj[i]=null;}
+   for(const j of [h.y*W+px,(h.y+h.h-1)*W+px])if(tiles[j]===T.WIN){tiles[j]=T.WALL;h.wins=h.wins.filter(k=>k!==j);}}}
+ // passagens (portas interiores) e porta da rua
+ const isGap=(x,y)=>{const i=y*W+x;return FL(i)&&((WL(tiles[i-1])&&WL(tiles[i+1]))||(WL(tiles[i-W])&&WL(tiles[i+W])));};
+ const keep=new Set();const mark=(x,y)=>{for(const [a,b] of [[0,0],[1,0],[-1,0],[0,1],[0,-1]])keep.add((y+b)*W+x+a);};
+ mark(h.door[0],h.door[1]);
+ for(let y=y0;y<=y1;y++)for(let x=x0;x<=x1;x++)if(isGap(x,y))mark(x,y);
+ // divisões
+ const rid=new Int16Array(iw*ih).fill(-1),rooms=[];
+ for(let y=y0;y<=y1;y++)for(let x=x0;x<=x1;x++){const k=(y-y0)*iw+x-x0;if(rid[k]>=0||!FL(y*W+x)||isGap(x,y))continue;
+  const R={t:[],n:rooms.length};const st=[[x,y]];rid[k]=R.n;
+  while(st.length){const [cx,cy]=st.pop();R.t.push([cx,cy]);for(const [a,b] of [[1,0],[-1,0],[0,1],[0,-1]]){const nx=cx+a,ny=cy+b;if(!inB(nx,ny))continue;const kk=(ny-y0)*iw+nx-x0;if(rid[kk]>=0||!FL(ny*W+nx)||isGap(nx,ny))continue;rid[kk]=R.n;st.push([nx,ny]);}}
+  rooms.push(R);}
+ if(!rooms.length)return;
+ const dIn=[[0,1],[0,-1],[1,0],[-1,0]].map(([a,b])=>[h.door[0]+a,h.door[1]+b]).find(([x,y])=>inB(x,y)&&FL(y*W+x));
+ const doorRoom=dIn?rooms.find(R=>R.t.some(([x,y])=>x===dIn[0]&&y===dIn[1])):null;
+ rooms.sort((a,b)=>(b===doorRoom)-(a===doorRoom)||b.t.length-a.t.length);
+ // ninguém pode ficar fechado: todo o chão livre tem de ser alcançável a partir da porta
+ const reach=()=>{if(!dIn)return true;let tot=0;for(let y=y0;y<=y1;y++)for(let x=x0;x<=x1;x++){const i=y*W+x;if(FL(i)&&!obj[i])tot++;}
+  const seen=new Set([dIn[1]*W+dIn[0]]),st=[dIn];let n=0;if(obj[dIn[1]*W+dIn[0]])return false;
+  while(st.length){const [cx,cy]=st.pop();n++;for(const [a,b] of [[1,0],[-1,0],[0,1],[0,-1]]){const nx=cx+a,ny=cy+b,i=ny*W+nx;if(!inB(nx,ny)||seen.has(i)||!FL(i)||obj[i])continue;seen.add(i);st.push([nx,ny]);}}
+  return n>=tot;};
+ const setO=(x,y,s,w,hh,cont)=>{const m=y*W+x;obj[m]=cont?{t:cont,hp:CONT[cont].hp}:{t:'prop',s,w,cv:0};for(let r=0;r<hh;r++)for(let k=0;k<w;k++)if(r||k)obj[(y-r)*W+x+k]={t:'propx',cv:0,m};};
+ const clr=(x,y,w,hh)=>{for(let r=0;r<hh;r++)for(let k=0;k<w;k++)obj[(y-r)*W+x+k]=null;};
+ const free=(R,x,y,w,hh)=>{for(let r=0;r<hh;r++)for(let k=0;k<w;k++){const xx=x+k,yy=y-r,i=yy*W+xx;if(!inB(xx,yy)||!FL(i)||obj[i]||keep.has(i)||rid[(yy-y0)*iw+xx-x0]!==R.n)return false;}return true;};
+ // wall: 'top' encostado à parede de cima; 'side' à esquerda/direita; 'any'; 'mid' no meio da divisão
+ const spots=(R,w,hh,wall)=>{const out=[];for(const [x,y] of R.t){const by=y+hh-1;if(!free(R,x,by,w,hh))continue;
+   const top=[...Array(w).keys()].every(k=>WL(tiles[(y-1)*W+x+k]));
+   const side=WL(tiles[by*W+x-1])||WL(tiles[by*W+x+w]);
+   const mid=!top&&!side&&!WL(tiles[(by+1)*W+x]);
+   if(wall==='top'?top:wall==='side'?side:wall==='mid'?mid:(top||side))out.push([x,by]);}return out;};
+ const put=(R,s,w,hh,wall,cont,near)=>{let c=spots(R,w,hh,wall);if(!c.length&&wall!=='mid')c=spots(R,w,hh,'any');if(!c.length)return null;
+  if(near){c.sort((a,b)=>Math.abs(a[0]-near[0])+Math.abs(a[1]-near[1])-Math.abs(b[0]-near[0])-Math.abs(b[1]-near[1]));c=c.slice(0,2);}
+  for(let t=0;t<4&&c.length;t++){const j=near?0:ri3(0,c.length-1),[x,y]=c.splice(j,1)[0];setO(x,y,s,w,hh,cont);if(reach())return[x,y];clr(x,y,w,hh);}return null;};
+ const kitchen=R=>{const k=put(R,'kitch',2,1,'top','kitch');if(k){put(R,'f_stove',1,1,'top',null,[k[0]+2,k[1]]);put(R,'fridge',1,1,'any','fridge',[k[0]-1,k[1]]);}else{put(R,'f_stove',1,1,'any');put(R,'fridge',1,1,'any','fridge');}};
+ const living=R=>{put(R,'f_tv',1,1,'top');put(R,'f_sofa',2,1,'any');if(HR()<.6)put(R,'f_arm',1,1,'side');if(HR()<.5)put(R,'shelf',1,1,'any','shelf');
+  if(R.t.length>=16){const t=put(R,'f_table',2,1,'mid');if(t)addDeco('d_rug',(t[0]+1)*TS,t[1]*TS+24,.5,.5);}};
+ const bedroom=R=>{put(R,'f_bed',1,2,'top');put(R,'cab',1,1,'any','cab');if(HR()<.7)put(R,'desk',1,1,'any','desk');if(gc>0&&put(R,'gcase',1,1,'any','gcase'))gc--;if(HR()<.5)put(R,'bag',1,1,'any','bag');};
+ const bath=R=>{put(R,'f_tub',2,1,'top');put(R,'f_toilet',1,1,'any');};
+ const N=rooms.length;
+ if(N===1){const R=rooms[0];kitchen(R);put(R,'f_bed',1,2,'top');if(R.t.length>=12){put(R,'cab',1,1,'any','cab');living(R);}else{put(R,'f_tv',1,1,'top');}if(R.t.length>=24)bath(R);}
+ else if(N===2){living(rooms[0]);kitchen(rooms[0]);const B=rooms[1];bedroom(B);if(B.t.length>=10)bath(B);}
+ else{living(rooms[0]);kitchen(rooms[1]);bedroom(rooms[2]);for(let k=3;k<N;k++)(rooms[k].t.length<=6?bath:bedroom)(rooms[k]);if(N===3&&rooms[1].t.length>=10)bath(rooms[1]);}
+ // loot: os estojos de armas que havia e pelo menos 3-4 contentores por casa, sempre junto às paredes
+ const CT={box:1,bag:1,cab:1,kitch:1,shelf:1,desk:1,fridge:1,gcase:1};
+ const count=()=>{let n=0;for(let y=y0;y<=y1;y++)for(let x=x0;x<=x1;x++){const o=obj[y*W+x];if(o&&CT[o.t])n++;}return n;};
+ for(;gc>0;gc--){for(const R of rooms.slice().reverse())if(put(R,'gcase',1,1,'any','gcase'))break;}
+ const area=rooms.reduce((a,R)=>a+R.t.length,0),want=area<=9?2:area<=14?3+(HR()<.5?1:0):4+(HR()<.5?1:0)+(rooms.length>2?1:0);
+ for(let t=0;t<10&&count()<want;t++){const R=rooms[ri3(0,N-1)],k=['cab','box','bag','shelf','box','cab'][ri3(0,5)];put(R,k,1,1,'any',k);}
+}
 function genHouses(){
  const HR=mulberry(seed^0x3c6ef35);const ri3=(a,b)=>a+Math.floor(HR()*(b-a+1));
  const free=(x,y)=>x>1&&y>1&&x<W-2&&y<H-2&&tiles[y*W+x]===T.GRASS&&(!obj[y*W+x]||obj[y*W+x].t==='tree'||obj[y*W+x].t==='rock')&&!resv[y*W+x];
@@ -1152,14 +1215,8 @@ function genHouses(){
     else{ // jardim
      const n=ri3(2,4);for(let k=0;k<n;k++){const x=ri3(ix0,ix1-1),y=ri3(iy0,iy1);if(obj[y*W+x]||obj[y*W+x+1])continue;
       const r=HR();if(r<.3){addDeco('d_fbed',(x+1)*TS,y*TS+40);}else{obj[y*W+x]={t:'prop',s:['p_dogh','p_trike','p_hose','p_bbq'][ri3(0,3)],w:1,cv:0};}}}}}
-  // mobília (fila de cima de cada casa)
-  {const y=h.y+1;let x=h.x+1;const xe=h.x+h.w-2,dd=(xx,yy)=>Math.abs(xx-h.door[0])+Math.abs(yy-h.door[1])<2;
-   while(x<=xe){if(HR()<.35||dd(x,y)||dd(x+1,y)){x++;continue;}const r=HR();let used=1;
-    if(r<.42&&x+1<=xe&&!dd(x+1,y)){const c=['f_sofa','f_table','kitch','f_tub','kitch'][ri3(0,4)];if(putFurn(x,y,c,2,1,c==='kitch'?'kitch':null))used=2;}
-    else if(r<.55&&!dd(x,y+1)){putFurn(x,y+1,'f_bed',1,2);}
-    else{const c=['f_arm','f_tv','f_stove','f_toilet','shelf','desk','shelf','f_arm'][ri3(0,7)];putFurn(x,y,c,1,1,c==='shelf'||c==='desk'?c:null);}
-    x+=used+(HR()<.5?1:0);}
-   if(h.w>=6&&h.h>=5&&HR()<.6){const cx2=h.x+(h.w>>1),cy2=h.y+(h.h>>1)+1;if(tiles[cy2*W+cx2]===T.FLOOR)addDeco('d_rug',cx2*TS,cy2*TS+20,.5,.5);}}
+  // mobília: por divisões
+  furnishHouse(h,HR);
  }
  // bordas da piscina
  for(let i=W;i<W*H-W;i++){if(tiles[i]!==T.POOL)continue;const x=i%W,y=i/W|0,X=x*TS,Y=y*TS,np=j=>tiles[j]!==T.POOL;
