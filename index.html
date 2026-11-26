@@ -2706,7 +2706,13 @@ function repath(){
 }
 function giveUp(){P.target=null;P.path=[];toast('Não consigo lá chegar');}
 function stepPath(spd,dt){
- if(!P.path.length)return false;
+ // já ao lado do objeto (o caminho vem vazio) mas ainda um pouco longe para lhe chegar: aproxima-se a direito em vez de desistir
+ if(!P.path.length){const t=P.target;if(t&&t.tx!=null&&Math.max(Math.abs((P.x/TS|0)-t.tx),Math.abs((P.y/TS|0)-t.ty))<=1){
+   const ox=t.tx*TS+TS/2,oy=t.ty*TS+TS/2,dx=ox-P.x,dy=oy-P.y,d=Math.hypot(dx,dy);if(d<4)return true;const s=Math.min(d,spd*dt),px=P.x,py=P.y;move(P,dx/d*s,dy/d*s,false);P.ang=Math.atan2(dy,dx);
+   if(Math.hypot(P.x-px,P.y-py)>s*.2){t.tries=0;return true;}
+   // encostado e sem avançar: está colado ao objeto, por isso conta como chegou
+   t.near=1;return true;}
+  return false;}
  if(P.path.length>1&&(P.skT=(P.skT||0)-dt)<=0){P.skT=.25;if(clearLine(P.x,P.y,P.path[1].x,P.path[1].y,P.r+1))P.path.shift();}
  const wp=P.path[0],dx=wp.x-P.x,dy=wp.y-P.y,d=Math.hypot(dx,dy);
  if(d<5){P.path.shift();return P.path.length>0;}
@@ -2745,18 +2751,18 @@ function runTarget(S,spd,dt){
  if(t.k==='npc'){const d=Math.hypot(t.n.x-P.x,t.n.y-P.y);if(d<78){P.path=[];P.target=null;openTrade(t.n);}else if(!stepPath(spd,dt)){if(++t.tries>3)giveUp();else repath();}return;}
  const ox=t.tx*TS+TS/2,oy=t.ty*TS+TS/2,d=Math.hypot(ox-P.x,oy-P.y);
  if(t.k==='berry'){const o=obj[t.i];if(!o||o.t!=='berry'||!o.hp){P.target=null;return;}
-  if(d<72){P.path=[];const n=mri(2,4),left=addItem({id:'bagas',q:n});if(left)dropGround(P.x,P.y,{id:'bagas',q:left},2);o.hp=0;regrow.push({i:t.i,t:'berryR',at:time+600});
+  if((t.near||d<72)){P.path=[];const n=mri(2,4),left=addItem({id:'bagas',q:n});if(left)dropGround(P.x,P.y,{id:'bagas',q:left},2);o.hp=0;regrow.push({i:t.i,t:'berryR',at:time+600});
    sfx('rustle',ox,oy);sfx('pickup');ftext(ox,oy-30,'+'+n+' bagas','#ff8aa0');burst(ox,oy,'#3f7a33',6,90);P.target=null;}
   else if(!stepPath(spd,dt)){if(++t.tries>3)giveUp();else repath();}
   return;}
  if(t.k==='trunk'){const o=obj[t.i];if(!o||o.t!=='prop'||!o.hp){P.target=null;return;}
-  if(d<82){P.path=[];P.ang=Math.atan2(oy-P.y,ox-P.x);t.ct=(t.ct||0)+dt;if(!t.snd){t.snd=1;sfx('door',ox,oy);toast('🚗 A revistar a mala…');}
+  if((t.near||d<82)){P.path=[];P.ang=Math.atan2(oy-P.y,ox-P.x);t.ct=(t.ct||0)+dt;if(!t.snd){t.snd=1;sfx('door',ox,oy);toast('🚗 A revistar a mala…');}
    if(t.ct>=1.4){o.hp=0;regrow.push({i:t.i,t:'trunk',at:time+1200});const n=mri(1,3);
     for(let k=0;k<n;k++)dropGround(P.x+Math.cos(P.ang)*22,P.y+Math.sin(P.ang)*22,roll(LOOT.car,'car'),1);sfx('pickup');ftext(ox,oy-30,'Mala revistada','#ffd25a');P.target=null;}}
   else if(!stepPath(spd,dt)){if(++t.tries>3)giveUp();else repath();}
   return;}
  if(t.k==='cook'){const o=obj[t.i];if(!o||o.t!=='fogueira'){P.target=null;return;}
-  if(d<82){P.path=[];P.ang=Math.atan2(oy-P.y,ox-P.x);t.ct=(t.ct||0)+dt;if(Math.random()<.1)sfx('sizzle',ox,oy);
+  if((t.near||d<82)){P.path=[];P.ang=Math.atan2(oy-P.y,ox-P.x);t.ct=(t.ct||0)+dt;if(Math.random()<.1)sfx('sizzle',ox,oy);
    if(t.ct>=2.2){t.ct=0;const k=inv.findIndex(x=>x&&x.id==='carne_crua');if(k<0){if(ammo('bagas')>=4){take('bagas',4);if(addItem({id:'compota',q:1}))dropGround(P.x,P.y,{id:'compota',q:1},2);ftext(ox,oy-30,'+1 🍯 Compota','#ffd25a');sfx('pickup');return;}toast('🔥 Já cozinhaste tudo');P.target=null;return;}
     inv[k].q--;if(!inv[k].q)inv[k]=null;if(addItem({id:'carne_assada',q:1}))dropGround(P.x,P.y,{id:'carne_assada',q:1},2);
     ftext(ox,oy-30,'+1 🍗 Carne Assada','#ffd25a');burst(ox,oy,'#aaa',4,40,'smoke');sfx('pickup');}}
@@ -2768,12 +2774,12 @@ function runTarget(S,spd,dt){
    if(d<380&&los(P.x,P.y,ox,oy,t.i)){P.path=[];P.ang=Math.atan2(oy-P.y,ox-P.x);if(P.cd<=0)attack(S);}
    else if(!stepPath(spd,dt)){if(++t.tries>3)giveUp();else repath();}
    return;}
-  if(d<74){P.path=[];P.ang=Math.atan2(oy-P.y,ox-P.x);
+  if((t.near||d<74)){P.path=[];P.ang=Math.atan2(oy-P.y,ox-P.x);
    if(P.cd<=0){const tool=toolFor(o.t);P.cd=tool.w.rate;P.swing=.2;P.toolIt=tool.it;P.toolT=.45;hitObj({o,i:t.i,x:ox,y:oy},tool.w.dmg,tool.w);wear(tool.it);}}
   else if(!stepPath(spd,dt)){if(++t.tries>3)giveUp();else repath();}
   return;}
  if(t.k==='water'){
-  if(d<72){P.path=[];P.ang=Math.atan2(oy-P.y,ox-P.x);if(P.cd<=0){P.cd=600;drink();if(P.sede>=99)P.target=null;}}
+  if((t.near||d<72)){P.path=[];P.ang=Math.atan2(oy-P.y,ox-P.x);if(P.cd<=0){P.cd=600;drink();if(P.sede>=99)P.target=null;}}
   else if(!stepPath(spd,dt)){if(++t.tries>3)giveUp();else repath();}
   return;}
  if(t.k==='build'){
