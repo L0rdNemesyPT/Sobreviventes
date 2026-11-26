@@ -133,6 +133,7 @@ canvas#g{position:fixed;inset:0;width:100%;height:100%;display:block}
 .ms{min-height:52px;border-radius:12px;border:1px solid var(--ln);background:var(--cell);font-size:18px;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:2px}
 .ms span{font-size:9px;color:var(--mut);line-height:1.1;text-align:center}
 .ms.on{outline:2px solid #fff}
+.qrow{display:flex;align-items:center;gap:8px;margin-top:8px;font-size:13px}.qrow input{flex:1;accent-color:#7fd07f}.qrow b{min-width:28px;text-align:right}.qrow .mini{min-height:36px;min-width:40px}.qq .mini{flex:1}
 .mp{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}.mp button{min-height:38px}
 .tro{display:flex;align-items:center;gap:10px;background:var(--cell);border:1px solid var(--ln);border-radius:14px;padding:10px;margin-top:8px}.tro .gv{flex:1;font-size:13px;line-height:1.5}
 .bgrid{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:6px;margin:6px 0}.bauh{font-size:12px;color:var(--mut);margin-top:8px}
@@ -2469,6 +2470,8 @@ function hubSetBag(bag){ // ajusta a mochila do perfil; o que não couber vai pa
  for(const it of over)addTo(PROF.stash,it);
  inv2.length=Math.min(inv2.length,cap);while(inv2.length<cap)inv2.push(null);
  if(over.length)toast(over.length+' item(s) passaram para o armazém');return true;}
+// quantidade escolhida para mover (por omissão a pilha toda)
+function hubQn(it){return Math.max(1,Math.min(it.q||1,hubSel&&hubSel.n?hubSel.n:it.q||1));}
 function hubArr(w){return w==='s'?PROF.stash:PROF.inv;}
 function hubItem(){if(!hubSel)return null;return hubSel.w==='e'?PROF.eq[hubSel.k]:hubArr(hubSel.w)[hubSel.i];}
 function enterHub(){hubTab='bag';hubSel=null;
@@ -2509,10 +2512,14 @@ function renderHub(){
   det.innerHTML=trashHTML();det.classList.remove('hide');$('hTip').classList.add('hide');fitPad();return;}
  if(!it){det.innerHTML='';det.classList.add('hide');$('hTip').classList.remove('hide');fitPad();return;}
  det.classList.remove('hide');$('hTip').classList.add('hide');
- const d=IT[it.id];let h=itemInfo(it,[...PROF.inv,...PROF.stash])+repHTML(it,[PROF.inv,PROF.stash])+modHTML(it,[PROF.inv,PROF.stash])+'<div class="acts">';
+ const d=IT[it.id];let h=itemInfo(it,[...PROF.inv,...PROF.stash])+repHTML(it,[PROF.inv,PROF.stash])+modHTML(it,[PROF.inv,PROF.stash]);
+ const qn=hubQn(it);if(hubSel.w!=='e'&&it.q>1)h+=`<div class="qrow"><span>Quantidade</span><button class="mini" data-hq="-1">−</button><input type="range" id="hQn" min="1" max="${it.q}" value="${qn}"><button class="mini" data-hq="+1">＋</button><b id="hQv">${qn}</b></div>
+  <div class="qrow qq"><button class="mini" data-hq="1">1</button><button class="mini" data-hq="half">Metade</button><button class="mini" data-hq="all">Tudo (${it.q})</button></div>`;
+ h+='<div class="acts">';
  if(hubSel.w==='e')h+='<button class="p" data-h="toS">→ Armazém</button><button data-h="toI">→ Mochila</button>';
  else{
-  const mv=hubSel.w==='s'?'<button class="p" data-h="toI">🎒 Levar</button>':'<button class="p" data-h="toS">📦 Guardar</button>';
+  const mq=it.q>1?` <span class="mvq">×${qn}</span>`:'';
+  const mv=hubSel.w==='s'?`<button class="p" data-h="toI">🎒 Levar${mq}</button>`:`<button class="p" data-h="toS">📦 Guardar${mq}</button>`;
   if(hubTab==='bag')h+=mv;
   if(d.s==='arma')h+='<button data-h="e1">Primária</button><button data-h="e2">Secundária</button>';
   else if(['capacete','armadura','botas','fones','mochila'].includes(d.s))h+='<button data-h="eq">Equipar</button>';
@@ -2557,9 +2564,9 @@ function hubAction(a){
   if(addTo(to,it)){toast('Sem espaço');if(k==='mochila'){PROF.eq.mochila=it;hubSetBag(it);}else PROF.eq[k]=it;return;}
   hubSel=null;sfx('equip');return;}
  const arr=hubArr(hubSel.w),idx=hubSel.i;
- if(a==='toS'||a==='toI'){const to=a==='toS'?PROF.stash:PROF.inv;const left=addTo(to,{...it});
-  if(left===it.q){toast(a==='toS'?'Armazém cheio':'Mochila cheia');return;}
-  if(left)it.q=left;else{arr[idx]=null;hubSel=null;}sfx('pickup');return;}
+ if(a==='toS'||a==='toI'){const to=a==='toS'?PROF.stash:PROF.inv,n=hubQn(it),left=addTo(to,{...it,q:n}),moved=n-(left||0);
+  if(!moved){toast(a==='toS'?'Armazém cheio':'Mochila cheia');return;}
+  it.q-=moved;if(it.q<=0){arr[idx]=null;hubSel=null;}else{hubSel.n=Math.min(hubSel.n||it.q,it.q);if(left)toast(a==='toS'?'Armazém cheio':'Mochila cheia');}sfx('pickup');return;}
  if(a==='e1'||a==='e2'||a==='eq'){
   const k=a==='e1'?'arma1':a==='e2'?'arma2':IT[it.id].s,old=PROF.eq[k];
   arr[idx]=null;PROF.eq[k]=it;
@@ -2574,7 +2581,8 @@ function sortList(arr,n){const list=arr.filter(Boolean),st=new Array(n).fill(nul
 function sortStash(){PROF.stash=sortList(PROF.stash,Math.max(stashCap(),PROF.stash.length));}
 // arruma no próprio array (a mochila tem tamanho fixo: junta pilhas e põe por categoria)
 function sortBag(arr){const st=sortList(arr,arr.length);if(st!==arr)arr.splice(0,arr.length,...st);}
-$('hub').addEventListener('input',e=>{if(e.target.id==='hQ'){invQ=e.target.value.trim().toLowerCase();renderHub();}});
+$('hub').addEventListener('input',e=>{if(e.target.id==='hQ'){invQ=e.target.value.trim().toLowerCase();renderHub();}
+ if(e.target.id==='hQn'&&hubSel){hubSel.n=+e.target.value;$('hQv').textContent=hubSel.n;document.querySelectorAll('#hDet .mvq').forEach(x=>x.textContent='×'+hubSel.n);}});
 $('hub').addEventListener('change',e=>{if(e.target.id==='trItem'&&e.target.value){const id=e.target.value;trashToggleGroup(x=>x.id===id);renderHub();}});
 $('hub').addEventListener('click',e=>{
  const s=e.target.closest('.sl');if(!s)lastTap.k=null;
@@ -2600,6 +2608,8 @@ $('hub').addEventListener('click',e=>{
  if(b.dataset.tgo){if(!trashConf){trashConf=true;renderHub();return;}
   let n=0;const keep=[];for(const k of trashSel){const [w,i]=k.split(':');const arr=w==='s'?PROF.stash:PROF.inv;if(arr[+i]){keep.push(arr[+i]);arr[+i]=null;n++;}}for(const x of keep)modsBack(x);
   trashSel.clear();trashConf=false;sfx('crack');toast(`🗑️ ${n} item(s) deitados fora`);renderHub();saveGame();return;}
+ if(b.dataset.hq){const it=hubItem();if(!it)return;const v=b.dataset.hq,cur=hubQn(it);
+  hubSel.n=v==='all'?it.q:v==='half'?Math.max(1,Math.floor(it.q/2)):v==='-1'?Math.max(1,cur-1):v==='+1'?Math.min(it.q,cur+1):1;sfx('ui');renderHub();return;}
  if(b.dataset.hclose){hubSel=null;modPick=null;repPick=false;hubTrash=false;renderHub();return;}
  if(b.dataset.h){hubAction(b.dataset.h);renderHub();saveGame();return;}
  if(b.id==='hAll'){let n=0;for(let i=0;i<PROF.inv.length;i++){const it=PROF.inv[i];if(!it)continue;const left=addTo(PROF.stash,{...it});if(left)it.q=left;else{PROF.inv[i]=null;n++;}}
