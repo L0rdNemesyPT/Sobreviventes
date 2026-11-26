@@ -92,7 +92,7 @@ canvas#g{position:fixed;inset:0;width:100%;height:100%;display:block}
 #det.hide{display:none}
 .htabs{display:flex;gap:4px;background:var(--cell);border:1px solid var(--ln);border-radius:14px;padding:4px;margin:10px 0 6px;position:sticky;top:0;z-index:3;-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px)}
 .htabs button{flex:1;min-height:40px;border:0;border-radius:10px;background:transparent;color:var(--tx);font:600 12px Inter,sans-serif;padding:0 4px}.htabs button.on{background:#e8e8e8;color:#111}
-.hubw .tp{display:none}.hubw[data-tab=per] .tp-per,.hubw[data-tab=bag] .tp-bag,.hubw[data-tab=base] .tp-base{display:block}
+.hubw .tp{display:none}.hubw[data-tab=bag] .tp-bag,.hubw[data-tab=base] .tp-base{display:block}
 .srch{width:100%;min-height:40px;border-radius:12px;border:1px solid var(--ln);background:var(--cell);color:var(--tx);font:500 14px Inter,sans-serif;padding:0 12px;margin:2px 0 2px}
 .bcard{display:flex;align-items:center;gap:12px;background:var(--cell);border:1px solid var(--ln);border-radius:16px;padding:12px;margin-top:8px}.bcard .be{font-size:30px}.bcard div{flex:1;min-width:0}.bcard b{font-size:14px}.bcard small{display:block;font-size:12px;color:var(--mut);margin-top:2px}
 .bcard .lv{display:flex;gap:3px;margin-top:6px}.bcard .lv i{flex:1;height:5px;border-radius:5px;background:rgba(255,255,255,.12)}.bcard .lv i.on{background:#7fe07f}
@@ -264,16 +264,14 @@ h1{font:800 clamp(30px,8vw,44px)/1.05 Inter,sans-serif;letter-spacing:-.03em;mar
  <div class="hubw">
   <div class="ph"><b>🏚️ Esconderijo</b><span style="display:flex;gap:6px"><button class="sbtn" id="mpB">👥 Amigos</button><button class="sbtn" id="hName">👤 <span id="hNameT"></span> ✏️</button></span></div>
   <div id="hStats" style="font-size:12px;opacity:.75;margin-top:-6px"></div>
-  <div class="htabs" id="hTabs"><button data-ht="per">🧍 Personagem</button><button data-ht="bag">🎒 Mochila e armazém</button><button data-ht="base">🔧 Bancada</button></div>
-  <div class="tp tp-per">
+  <div class="htabs" id="hTabs"><button data-ht="bag">🎒 Personagem e inventário</button><button data-ht="base">🔧 Bancada</button></div>
+  <div class="tp tp-bag">
    <div id="hEq"></div>
    <div id="hTot"></div>
-   <div id="hKits"></div>
-   <div class="qbrow" id="qbH"></div>
-  </div>
-  <div class="tp tp-bag">
    <div class="sec"><span>Levas contigo <span id="hInvN" style="opacity:.7"></span></span><span style="display:flex;gap:6px" id="hKq"></span></div>
    <div id="hInv" class="gr"></div>
+   <div class="qbrow" id="qbH"></div>
+   <div id="hKits"></div>
    <div class="hint2">Toque duplo num item para o passar entre a mochila e o armazém</div>
    <div class="sec"><span>Armazém <span id="hStN" style="opacity:.7"></span></span><span style="display:flex;gap:6px"><button class="mini" id="hArm">⬆️ Ampliar</button><button class="mini" id="hTrash">🗑️ Lixo</button><button class="mini" id="hSort">Arrumar</button></span></div>
    <input id="hQ" class="srch" placeholder="🔍 Procurar no armazém" autocomplete="off" spellcheck="false">
@@ -1479,7 +1477,7 @@ function renderRoom(){const el=$('hRoom');if(!el)return;const W0=el.clientWidth|
  el.innerHTML=h;}
 function roomAct(a){const go=id=>{const e=$(id);if(e)e.scrollIntoView({behavior:'smooth',block:'start'});};sfx('ui');
  if(a==='go')startRaid();
- else if(a==='stash'||a==='inv'||a==='eq'){hubTab=a==='eq'?'per':'bag';hubSel=null;renderHub();go('hTabs');}
+ else if(a==='stash'||a==='inv'||a==='eq'){hubTab='bag';hubSel=null;renderHub();go(a==='eq'?'hTabs':'hInv');}
  else if(a==='bench')openBase('banc');else if(a==='radio')openBase('radio');else if(a==='plant'){if(harvCount())harvCollect();else openBase('horta');}
  else if(a==='bed')toast('🛏️ Descansa um pouco. O mundo lá fora não espera.');}
 $('hRoom').addEventListener('click',e=>{const h=e.target.closest('[data-room]');if(h)roomAct(h.dataset.room);});
@@ -2452,7 +2450,7 @@ $('hub').addEventListener('click',e=>{
   // toque duplo: na mochila/armazém passa de um lado para o outro; no equipamento desequipa para o armazém
   if(hubSel&&dblTap('h'+(ds.he||'')+(ds.hi!=null?'i'+ds.hi:'')+(ds.hs!=null?'s'+ds.hs:''))){hubAction(hubSel.w==='i'?'toS':hubSel.w==='s'?'toI':'toS');renderHub();saveGame();return;}
   sfx('ui');renderHub();return;}
- const tb=e.target.closest('[data-ht]');if(tb){hubTab=tb.dataset.ht;hubSel=null;sfx('ui');renderHub();return;}
+ const tb=e.target.closest('[data-ht]');if(tb){hubTab=tb.dataset.ht==='per'?'bag':tb.dataset.ht;hubSel=null;sfx('ui');renderHub();return;}
  const b=e.target.closest('button');if(!b)return;
  if(b.dataset.hb){openBase(b.dataset.hb);return;}
  if(b.dataset.hcol){harvCollect();return;}
