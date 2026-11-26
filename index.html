@@ -1658,13 +1658,13 @@ const RECIPES=[[1,{id:'b9',q:20},[['moeda',12]]],[1,{id:'cart',q:8},[['moeda',14
 const COOK=[[{id:'cozido',q:1},[['carne_crua',2],['pao',1],['agua',1]]],[{id:'bife',q:1},[['carne_crua',3],['agua',1]]],[{id:'sandes',q:2},[['pao',1],['enlatado',1]]],
  [{id:'sumo',q:2},[['maca',3],['agua',1]]],[{id:'compota',q:1},[['bagas',6]]],[{id:'energetica',q:1},[['refri',2],['agua',1]]],
  [{id:'sopa',q:1},[['enlatado',1],['pao',1],['agua',1]]],[{id:'cha',q:1},[['bagas',4],['agua',2]]],[{id:'racao_v',q:1},[['*comida',4]]]];
-// "comida qualquer": tudo o que mata a fome, menos rações de viagem e carne crua; gasta primeiro as mais baratas
-function foodList(){const L=[];for(const arr of [PROF.stash,PROF.inv])arr.forEach((x,i)=>{if(!x)return;const u=IT[x.id].u;if(u&&u.fome>=15&&!u.raw&&x.id!=='racao_v')L.push([arr,i,x]);});
+// "comida qualquer": tudo o que mata a fome, menos rações de viagem, carne crua e comida Muito Rara/Lendária; gasta primeiro as mais baratas
+function foodList(){const L=[];for(const arr of [PROF.stash,PROF.inv])arr.forEach((x,i)=>{if(!x)return;const u=IT[x.id].u;if(u&&u.fome>=15&&!u.raw&&x.id!=='racao_v'&&IT[x.id].r<3)L.push([arr,i,x]);});
  return L.sort((a,b)=>(IT[a[2].id].r-IT[b[2].id].r)||(IT[a[2].id].u.fome-IT[b[2].id].u.fome));}
 function cookCount(id){return id==='*comida'?foodList().reduce((n,[, ,x])=>n+(x.q||1),0):hubCount(id);}
 function cookPay(c){return c.every(([id,q])=>cookCount(id)>=q);}
 function cookTake(c){for(const [id,q] of c){if(id!=='*comida'){hubTake(id,q);continue;}let n=q;for(const [arr,i,x] of foodList()){if(n<=0)break;const t=Math.min(n,x.q||1);x.q=(x.q||1)-t;n-=t;if(x.q<=0)arr[i]=null;}}}
-function cookHTML(c){return c.map(([id,q])=>{const have=cookCount(id),ok=have>=q;return`<span class="bc${ok?'':' no'}">${id==='*comida'?'🍽️ comida (fome 15+)':ie(id,18)+' '+IT[id].n} ${q}<small>${have}</small></span>`;}).join('');}
+function cookHTML(c){return c.map(([id,q])=>{const have=cookCount(id),ok=have>=q;return`<span class="bc${ok?'':' no'}">${id==='*comida'?'🍽️ comida (fome 15+, até Rara)':ie(id,18)+' '+IT[id].n} ${q}<small>${have}</small></span>`;}).join('');}
 function hubCount(id){let n=0;for(const x of [...PROF.stash,...PROF.inv])if(x&&x.id===id)n+=x.q||1;return n;}
 function hubTake(id,q){for(const arr of [PROF.stash,PROF.inv])for(let i=0;i<arr.length&&q>0;i++){const x=arr[i];if(x&&x.id===id){const t=Math.min(q,x.q||1);x.q=(x.q||1)-t;q-=t;if(x.q<=0)arr[i]=null;}}}
 function canPay(c){return c.every(([id,q])=>hubCount(id)>=q);}
