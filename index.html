@@ -214,7 +214,7 @@ h1{font:800 clamp(30px,8vw,44px)/1.05 Inter,sans-serif;letter-spacing:-.03em;mar
 <div id="exBox" class="hide"></div>
 
 <div id="inv" class="ov hide"><div class="panel">
-  <div class="ph"><b>🎒 Mochila</b><button class="xb" id="invX">✕</button></div>
+  <div class="ph"><b>🎒 Mochila</b><span style="display:flex;gap:8px;align-items:center"><button class="mini" id="invSort">Arrumar</button><button class="xb" id="invX">✕</button></span></div>
   <div id="cap"></div>
   <div id="eq"></div>
   <div id="tot"></div>
@@ -2312,8 +2312,9 @@ function renderInv(){
 }
 $('inv').addEventListener('click',e=>{
  if(e.target.id==='invX'||e.target.id==='inv'){closeInv();return;}
+ if(e.target.id==='invSort'){sortBag(inv);sel=null;modPick=null;sfx('equip');toast('Mochila arrumada');renderInv();return;}
  const s=e.target.closest('.sl');if(!s)lastTap.k=null;
- {const mb=e.target.closest('[data-ms],[data-mp],[data-mr],[data-rp],[data-rw]');if(mb&&sel){const it=sel.eq?P.eq[sel.eq]:inv[sel.i];if(it&&(repClick(mb,it,[inv])||modClick(mb,it,[inv]))){renderInv();return;}}}
+ {const mb=e.target.closest('[data-ms],[data-mp],[data-mr],[data-mf],[data-rp],[data-rw]');if(mb&&sel){const it=sel.eq?P.eq[sel.eq]:inv[sel.i];if(it&&(repClick(mb,it,[inv])||modClick(mb,it,[inv]))){renderInv();return;}}}
  if(e.target.closest('[data-dx]')){sel=null;modPick=null;repPick=false;renderInv();return;}
  if(s){modPick=null;repPick=false;const key=s.dataset.eq?'e'+s.dataset.eq:'i'+s.dataset.i;if(s.dataset.eq){sel=P.eq[s.dataset.eq]?{eq:s.dataset.eq}:null;}else{const i=+s.dataset.i;sel=inv[i]?{i}:null;}
   if(sel&&dblTap(key)){const it=sel.eq?P.eq[sel.eq]:inv[sel.i],d=IT[it.id];
@@ -2383,7 +2384,10 @@ function modHTML(it,arrs){
  if(modPick){const list=[];arrs.forEach((a,ai)=>a.forEach((x,xi)=>{if(x&&IT[x.id].s==='mod'&&IT[x.id].mt===modPick&&!(IT[x.id].big&&SMW.includes(it.id))&&!(IT[x.id].blade&&!BLADE.includes(it.id)))list.push([ai,xi,x]);}));
   h+=list.length?'<div class="mp">'+list.map(([ai,xi,x])=>`<button data-mp="${ai}:${xi}" style="border-color:${RAR[x.r||0]}">${ie(x.id)} ${IT[x.id].n} ${RARE[x.r||0]}</button>`).join('')+'</div>'
    :`<div style="font-size:12px;opacity:.7;margin-top:6px">Não tens nenhum mod de ${MTN[modPick]}.</div>`;
-  const cur=it.mods&&it.mods[modPick];if(cur)h+=`<div class="mp"><button data-mr="1">Tirar ${IT[cur.id].n}</button></div>`;}
+  const cur=it.mods&&it.mods[modPick];if(cur){h+=`<div class="mp"><button data-mr="1">Tirar ${IT[cur.id].n}</button>`;
+   if(state==='hub'&&(cur.r||0)<4){const r=cur.r||0,n=modMates(cur.id,r,null,it,modPick).length+1;
+    h+=n>=3?`<button class="fu" data-mf="1" style="border-color:${RAR[r+1]};color:${RAR[r+1]}">⬆ Fundir 3 → ${RARE[r+1]}</button>`:`<span class="fuh" style="margin:0">⬆ ${n}/3 ${IT[cur.id].n} ${RARE[r]} para fundir</span>`;}
+   h+='</div>';}}
  return h;}
 function modClick(el,it,arrs){
  const ds=el.dataset;
@@ -2391,6 +2395,8 @@ function modClick(el,it,arrs){
  if(ds.mp&&modPick){const [ai,xi]=ds.mp.split(':').map(Number),arr=arrs[ai],m=arr[xi];if(!m)return true;
   it.mods=it.mods||{};const old=it.mods[modPick];it.mods[modPick]={id:m.id,r:m.r||0};arr[xi]=old?{id:old.id,q:1,r:old.r}:null;
   sfx('equip');toast(IT[m.id].n+' instalado');modPick=null;return true;}
+ if(ds.mf&&modPick&&state==='hub'&&it.mods&&it.mods[modPick]){const cur=it.mods[modPick],r=cur.r||0,m=modMates(cur.id,r,null,it,modPick).slice(0,2);if(r>=4||m.length<2)return true;
+  for(const e of m)modTake(e);it.mods[modPick]={id:cur.id,r:r+1};sfx('build');sfx('rare');toast(`⬆️ ${IT[cur.id].n} ${RARE[r+1]}!`);saveGame();return true;}
  if(ds.mr&&modPick&&it.mods&&it.mods[modPick]){const old=it.mods[modPick],arr=arrs.find(a=>a.indexOf(null)>=0);
   if(!arr){toast('Sem espaço para o mod');return true;}arr[arr.indexOf(null)]={id:old.id,q:1,r:old.r};delete it.mods[modPick];modPick=null;sfx('equip');return true;}
  return false;}
@@ -2460,7 +2466,7 @@ function renderHub(){
  {let last=-1;PROF.stash.forEach((x,i)=>{if(x)last=i;});const n=Math.min(PROF.stash.length,(Math.floor((last+1)/6)+1)*6);
   $('hSt').innerHTML=PROF.stash.slice(0,n).map((it,i)=>slotHTML(it,'',`data-hs="${i}"`,hubSel&&hubSel.w==='s'&&hubSel.i===i)).join('');}
  $('hKits').innerHTML=kitsHTML();$('qbH').innerHTML=qbRowHTML([PROF.inv]);$('tabH').innerHTML=tabsHTML([PROF.stash]);tabsShow('tabH');applyF($('hSt'),PROF.stash,invQ);
- $('hKq').innerHTML=kitsList().map((K,k)=>K?`<button class="mini go" data-kit="a${k}">▶ Conjunto ${k+1}</button>`:'').join('')+'<button class="mini" id="hAll">Tudo para o armazém</button>';
+ $('hKq').innerHTML=kitsList().map((K,k)=>K?`<button class="mini go" data-kit="a${k}">▶ Conjunto ${k+1}</button>`:'').join('')+'<button class="mini" id="hISort">Arrumar</button><button class="mini" id="hAll">Tudo para o armazém</button>';
  $('hTot').innerHTML=chipsHTML(PROF.eq,false);
  $('hBase').innerHTML=baseTabHTML();
  $('hInvN').textContent=`${PROF.inv.filter(Boolean).length}/${PROF.inv.length}`;
@@ -2489,10 +2495,22 @@ function renderHub(){
 function baseTabHTML(){return'<div style="font-size:12px;color:var(--mut);margin:4px 0 2px">Melhora o esconderijo com moedas e materiais.</div>'+['banc','radio','horta','arm'].map(k=>{const B=BASE[k],lv=PROF.base[k]||0,mx=B.cost.length;
  return`<div class="bcard"><span class="be">${B.e}</span><div><b>${B.n}</b> <span style="font-size:12px;color:var(--mut)">nível ${lv}/${mx}</span><small>${B.d[Math.min(lv,B.d.length-1)]}</small><div class="lv">${Array.from({length:mx},(_,i)=>`<i class="${i<lv?'on':''}"></i>`).join('')}</div></div>${k==='horta'&&harvCount()?`<button class="mini go" data-hcol="1">Colher ${harvCount()}</button>`:`<button class="mini" data-hb="${k}">${lv<mx?'Abrir':'Ver'}</button>`}</div>`;}).join('');}
 function modsBack(it){let lost=0;if(it&&it.mods)for(const k in it.mods){const md=it.mods[k];if(md&&IT[md.id]){const b={id:md.id,q:1,r:md.r||0};if(addTo(PROF.stash,b)&&addTo(PROF.inv,b))lost++;}}return lost;}
-function fuseMates(it){const r=it.r||0,o=[];for(const arr of [PROF.stash,PROF.inv])arr.forEach((x,i)=>{if(x&&x!==it&&x.id===it.id&&(x.r||0)===r)o.push([arr,i,x]);});return o;}
+// mods iguais (mesmo tipo e raridade) soltos ou instalados em qualquer arma do esconderijo; soltos primeiro
+function modMates(id,r,skipIt,skipW,skipK){const o=[];
+ for(const arr of [PROF.stash,PROF.inv])arr.forEach((x,i)=>{if(x&&x!==skipIt&&x.id===id&&(x.r||0)===r)o.push({a:arr,i});});
+ const ws=[...PROF.stash,...PROF.inv,PROF.eq.arma1,PROF.eq.arma2].filter(w=>w&&w.mods);
+ for(const w of ws)for(const k in w.mods){const m=w.mods[k];if(m&&m.id===id&&(m.r||0)===r&&!(w===skipW&&k===skipK))o.push({w,k});}
+ return o;}
+function modTake(e){if(e.a)e.a[e.i]=null;else delete e.w.mods[e.k];}
+function modWName(w){return IT[w.id].n;}
+function fuseMates(it){if(IT[it.id].s==='mod')return modMates(it.id,it.r||0,it);const r=it.r||0,o=[];for(const arr of [PROF.stash,PROF.inv])arr.forEach((x,i)=>{if(x&&x!==it&&x.id===it.id&&(x.r||0)===r)o.push([arr,i,x]);});return o;}
 function hubAction(a){
  const it=hubItem();if(!it)return;
  if(a==='qb'){qbToggle(it.id);if(hubSel.w==='s'&&!PROF.inv.some(x=>x&&x.id===it.id))toast('⚡ Na barra. Põe-no na mochila para o levares para o mundo');return;}
+ if(a==='fuse'&&IT[it.id].s==='mod'){const r=it.r||0,m=fuseMates(it).slice(0,2);if(r>=4||m.length<2||hubSel.w==='e')return;
+  const inst=m.find(e=>e.w),nw={id:it.id,q:1,r:r+1};for(const e of m)if(e!==inst)modTake(e);
+  if(inst){inst.w.mods[inst.k]={id:it.id,r:r+1};hubArr(hubSel.w)[hubSel.i]=null;hubSel=null;}else hubArr(hubSel.w)[hubSel.i]=nw;
+  sfx('build');sfx('rare');toast(`⬆️ ${IT[it.id].n} ${RARE[r+1]}!${inst?' Ficou instalado na arma ('+modWName(inst.w)+').':''}`);return;}
  if(a==='fuse'){const r=it.r||0,m=fuseMates(it).slice(0,2);if(r>=4||m.length<2||hubSel.w==='e')return;
   const back=[];for(const [arr,i,x] of m){if(x.mods)for(const k in x.mods){const md=x.mods[k];if(md&&IT[md.id])back.push({id:md.id,q:1,r:md.r||0});}if(x.mag&&IT[x.id].w)back.push({id:IT[x.id].w.a,q:x.mag});arr[i]=null;}
   const nw={id:it.id,q:1,r:r+1};if(it.mods)nw.mods=it.mods;if(it.mag)nw.mag=it.mag;if(IT[it.id].w)nw.dur=100;
@@ -2520,14 +2538,17 @@ function hubAction(a){
   hubSel={w:'e',k};sfx('equip');}
 }
 const ORD={coin:-1,arma:0,capacete:1,armadura:2,fones:3,mochila:4,mod:5,use:6,rep:7,place:8,ammo:9};
-function sortStash(){const list=PROF.stash.filter(Boolean),st=new Array(Math.max(stashCap(),PROF.stash.length)).fill(null);
+function sortList(arr,n){const list=arr.filter(Boolean),st=new Array(n).fill(null);
  const CO=Object.fromEntries(ICAT.map(([k],i)=>[k,i]));list.sort((a,b)=>CO[catOf(a.id)]-CO[catOf(b.id)]||ORD[IT[a.id].s]-ORD[IT[b.id].s]||rOf(b)-rOf(a)||a.id.localeCompare(b.id));
- for(const it of list)addTo(st,it);PROF.stash=st;}
+ for(const it of list)if(addTo(st,it))return arr;return st;}
+function sortStash(){PROF.stash=sortList(PROF.stash,Math.max(stashCap(),PROF.stash.length));}
+// arruma no próprio array (a mochila tem tamanho fixo: junta pilhas e põe por categoria)
+function sortBag(arr){const st=sortList(arr,arr.length);if(st!==arr)arr.splice(0,arr.length,...st);}
 $('hub').addEventListener('input',e=>{if(e.target.id==='hQ'){invQ=e.target.value.trim().toLowerCase();renderHub();}});
 $('hub').addEventListener('change',e=>{if(e.target.id==='trItem'&&e.target.value){const id=e.target.value;trashToggleGroup(x=>x.id===id);renderHub();}});
 $('hub').addEventListener('click',e=>{
  const s=e.target.closest('.sl');if(!s)lastTap.k=null;
- {const mb=e.target.closest('[data-ms],[data-mp],[data-mr],[data-rp],[data-rw]');if(mb&&hubSel){const it=hubItem();if(it&&(repClick(mb,it,[PROF.inv,PROF.stash])||modClick(mb,it,[PROF.inv,PROF.stash]))){renderHub();saveGame();return;}}}
+ {const mb=e.target.closest('[data-ms],[data-mp],[data-mr],[data-mf],[data-rp],[data-rw]');if(mb&&hubSel){const it=hubItem();if(it&&(repClick(mb,it,[PROF.inv,PROF.stash])||modClick(mb,it,[PROF.inv,PROF.stash]))){renderHub();saveGame();return;}}}
  if(s&&trashMode){const ds=s.dataset;
   if(ds.he){toast('Desequipa primeiro para deitar fora');return;}
   const k=ds.hs!=null?'s:'+ds.hs:'i:'+ds.hi,arr=ds.hs!=null?PROF.stash:PROF.inv,ix=+(ds.hs!=null?ds.hs:ds.hi);
@@ -2554,6 +2575,7 @@ $('hub').addEventListener('click',e=>{
  if(b.id==='hAll'){let n=0;for(let i=0;i<PROF.inv.length;i++){const it=PROF.inv[i];if(!it)continue;const left=addTo(PROF.stash,{...it});if(left)it.q=left;else{PROF.inv[i]=null;n++;}}
   toast(n?`${n} item(s) guardados`:'Nada para guardar');hubSel=null;renderHub();saveGame();}
  else if(b.id==='hArm'){openBase('arm');}
+ else if(b.id==='hISort'){sortBag(PROF.inv);hubSel=null;toast('Mochila arrumada');renderHub();saveGame();}
  else if(b.id==='hSort'){sortStash();hubSel=null;toast('Armazém arrumado');renderHub();saveGame();}
  else if(b.id==='hKit'){
   const all=[...Object.values(PROF.eq),...PROF.inv,...PROF.stash].filter(Boolean);
