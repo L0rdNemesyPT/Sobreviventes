@@ -1,5 +1,5 @@
 // Sobreviventes.io — funciona offline depois da primeira visita
-const V='sv-9be5b03b';
+const V='sv-9263b702';
 // ficheiros que não mudam (atlas tem o hash no nome): ficam numa cache própria e não voltam a ser descarregados a cada update
 const FILES=['atlas-c140b802.webp', 'room.jpg', 'icon-192.png', 'icon-512.png', 'sfx/ak.mp3', 'sfx/auto.mp3', 'sfx/brk1.mp3', 'sfx/brk2.mp3', 'sfx/brk3.mp3', 'sfx/click.mp3', 'sfx/door.mp3', 'sfx/hammer.mp3', 'sfx/pickup.mp3', 'sfx/reload.mp3', 'sfx/shot.mp3', 'sfx/slash.mp3', 'sfx/stone1.mp3', 'sfx/stone2.mp3', 'sfx/stone3.mp3', 'sfx/wood.mp3', 'sfx/zg1.mp3', 'sfx/zg2.mp3', 'sfx/zg3.mp3', 'sfx/shotgun.mp3', 'sfx/sniper.mp3', 'sfx/sil.mp3', 'sfx/eat.mp3', 'sfx/drink.mp3', 'sfx/zip.mp3', 'sfx/zrun.mp3', 'sfx/heli.mp3', 'sfx/plane.mp3'];
 const CORE=['./','index.html','manifest.webmanifest'],ST='sv-static';
