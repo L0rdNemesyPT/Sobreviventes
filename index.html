@@ -2375,13 +2375,33 @@ function addTo(arr,it){const d=IT[it.id];let q=it.q;
  if(d.st>1){for(const s of arr){if(s&&s.id===it.id&&s.q<d.st){const a=Math.min(q,d.st-s.q);s.q+=a;q-=a;if(!q)return 0;}}}
  while(q>0){const i=arr.indexOf(null);if(i<0)return q;const a=d.st>1?Math.min(q,d.st):1;arr[i]=d.st>1?{id:it.id,q:a}:Object.assign({},it,{q:1});q-=a;}
  return 0;}
+// ---------- stats da arma com os mods (antes → depois) ----------
+function wStatRows(a,b){ // a: arma sem mods, b: arma com mods (itens)
+ const wa=wOf(a),wb=wOf(b),g=wa.t==='g',o=[],f1=v=>Math.round(v*10)/10;
+ const num=(k,va,vb,lowGood,fmt)=>{const d=vb-va;o.push({k,txt:fmt?fmt(va)+(Math.abs(d)>1e-6?' → '+fmt(vb):''):'',d:Math.abs(d)<1e-6?0:((lowGood?d<0:d>0)?1:-1),dt:Math.abs(d)<1e-6?'':(d>0?'+':'')+(fmt?fmt(d):Math.round(d))});};
+ const pct=(k,v,lowGood)=>{if(Math.abs(v)<.005)return;o.push({k,txt:(v>0?'+':'')+Math.round(v*100)+'%',d:(lowGood?v<0:v>0)?1:-1,dt:''});};
+ num('Dano',wa.dmg,wb.dmg,0,v=>String(Math.round(v))+(wb.pel>1?'×'+wb.pel:''));
+ num('Ataques/s',+shotsPS(a,wa),+shotsPS(b,wb),0,v=>String(f1(v)));
+ if(g&&!wa.bow){num('Carregador',magCap(a),magCap(b),0,v=>String(Math.round(v)));num('Recarga',rlTime(a),rlTime(b),1,v=>f1(v)+'s');}
+ if(wa.sp&&wb.sp)pct('Precisão',wa.sp/wb.sp-1);
+ if(wa.life&&wb.life)pct('Alcance',wb.life/wa.life-1);else if(wa.rng&&wb.rng)pct('Alcance',wb.rng/wa.rng-1);
+ pct('Ruído',(wb.noise||0)-(wa.noise||0),1);
+ if(wa.kb&&wb.kb&&wa.kb!==wb.kb)pct('Empurrão',wb.kb/wa.kb-1);
+ return o;}
+function wNoMods(it){const c=Object.assign({},it);delete c.mods;return c;}
+function wStatsHTML(it){if(!IT[it.id].w||!it.mods||!Object.values(it.mods).some(Boolean))return'';
+ const rows=wStatRows(wNoMods(it),it);
+ return`<div class="stg"><div class="wl" style="font-weight:700;color:var(--fg,#eee)">🔧 Com os mods</div>`+rows.map(r=>`<div><span>${r.k}</span><b class="${r.d>0?'g':r.d<0?'r':''}">${r.txt}</b></div>`).join('')+'</div>';}
+// o que muda se instalar este mod (curto, para os botões da lista)
+function modPreview(it,slot,m){const c=Object.assign({},it,{mods:Object.assign({},it.mods||{})});c.mods[slot]={id:m.id,r:m.r||0};
+ const rows=wStatRows(it,c).filter(r=>r.d);return rows.slice(0,3).map(r=>`<small class="${r.d>0?'g':'r'}" style="display:block;font-size:10.5px;font-weight:600">${r.k} ${r.dt||r.txt}</small>`).join('');}
 function itemInfo(it,arr){
  const d=IT[it.id],gear=isGear(it.id),r=rOf(it);
  let h=`<h3 style="color:${r>=0?RAR[r]:'#eee'}">${ie(it.id,26)} ${d.n}${it.q>1?' ×'+it.q:''}</h3>`;
  if(r>=0)h+=`<div style="font-size:12px;color:${RAR[r]}">${RARE[r]} ${RARN[r]}${gear&&r?` · stats ×${RMUL[r]}`:''}</div>`;
  if(d.s==='mod'){const e=modEff(it);h+=`<div style="margin-top:4px">Encaixa em: <b>${MTN[d.mt]}</b> (${d.mt==='lamina'||d.mt==='pega'?'armas brancas':'armas de fogo'})</div><div style="margin-top:4px">${Object.entries(e).map(([k,v])=>`<div class="${(BADNEG(k)?v<0:v>0)?'g':'r'}">${EFN[k]} ${v>0?'+':''}${Math.round(v*100)}%</div>`).join('')}</div>`;}
  if(d.d)h+=`<div style="margin-top:4px">${d.d}</div>`;
- if(d.w){const w=wOf(it);h+=`<div style="margin-top:4px">Dano <b>${w.dmg}</b>${w.pel?' ×'+w.pel:''} · ${shotsPS(it,w)} ataques/s${w.t==='m'?' · corpo a corpo':` · usa ${ie(w.a)} ${IT[w.a].n}${arr?` (tens ${ammo(w.a,arr)})`:''} · carregador ${it.mag||0}/${magCap(it)}`}</div>`;}
+ if(d.w){const w=wOf(it);h+=`<div style="margin-top:4px">Dano <b>${w.dmg}</b>${w.pel?' ×'+w.pel:''} · ${shotsPS(it,w)} ataques/s${w.t==='m'?' · corpo a corpo':` · usa ${ie(w.a)} ${IT[w.a].n}${arr?` (tens ${ammo(w.a,arr)})`:''} · carregador ${it.mag||0}/${magCap(it)}`}</div>`+wStatsHTML(it);}
  if(d.s==='mochila')h+=`<div class="g" style="margin-top:4px">+${bagSlots(it)} espaços no inventário</div>`;
  if(d.u&&!d.u.nade)h+=`<div class="g" style="margin-top:4px">${uText(d.u).join(' · ')}</div>`;
  {const m=mOf(it);if(Object.keys(m).length)h+=`<div style="margin-top:4px">${Object.entries(m).map(([k,v])=>fmtMod(k,v)).join('')}</div>`;}
@@ -2392,7 +2412,7 @@ function modHTML(it,arrs){
  let h=`<div style="margin-top:8px;font-size:12px;font-weight:700">Mods (toca num encaixe)</div><div class="mods">`+slots.map(sl=>{const m=it.mods&&it.mods[sl];
   return`<button class="ms${modPick===sl?' on':''}" data-ms="${sl}" style="border-color:${m?RAR[m.r||0]:'#555'}">${m?ie(m.id,24):'＋'}<span>${m?IT[m.id].n:MTN[sl]}</span></button>`;}).join('')+'</div>';
  if(modPick){const list=[];arrs.forEach((a,ai)=>a.forEach((x,xi)=>{if(x&&IT[x.id].s==='mod'&&IT[x.id].mt===modPick&&!(IT[x.id].big&&SMW.includes(it.id))&&!(IT[x.id].blade&&!BLADE.includes(it.id)))list.push([ai,xi,x]);}));
-  h+=list.length?'<div class="mp">'+list.map(([ai,xi,x])=>`<button data-mp="${ai}:${xi}" style="border-color:${RAR[x.r||0]}">${ie(x.id)} ${IT[x.id].n} ${RARE[x.r||0]}</button>`).join('')+'</div>'
+  h+=list.length?'<div class="mp">'+list.map(([ai,xi,x])=>`<button data-mp="${ai}:${xi}" style="border-color:${RAR[x.r||0]};text-align:left;padding:6px 10px"><span style="display:flex;align-items:center;gap:4px">${ie(x.id)} ${IT[x.id].n} ${RARE[x.r||0]}</span>${modPreview(it,modPick,x)}</button>`).join('')+'</div>'
    :`<div style="font-size:12px;opacity:.7;margin-top:6px">Não tens nenhum mod de ${MTN[modPick]}.</div>`;
   const cur=it.mods&&it.mods[modPick];if(cur){h+=`<div class="mp"><button data-mr="1">Tirar ${IT[cur.id].n}</button>`;
    if(state==='hub'&&(cur.r||0)<4){const r=cur.r||0,n=modMates(cur.id,r,null,it,modPick).length+1;
