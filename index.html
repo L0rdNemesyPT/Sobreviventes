@@ -77,7 +77,26 @@ canvas#g{position:fixed;inset:0;width:100%;height:100%;display:block}
 .brc button{min-height:36px;padding:0 14px;border-radius:10px;border:0;background:#f3f4f6;color:#111;font-weight:700}
 .mpl{display:flex;flex-direction:column;gap:6px;margin:6px 0 10px;font-weight:700}.mpl small{opacity:.6;font-weight:500}#mpB.on{border-color:#7ee08a;color:#bff0c0}
 .xb{width:38px;height:38px;border-radius:12px;border:1px solid var(--ln);background:var(--cell);font-size:16px}
-#eq,#hEq{display:grid!important;grid-template-columns:repeat(7,minmax(0,1fr))!important;gap:5px}
+#eq,#hEq{margin-bottom:4px}
+.doll{display:grid;grid-template-columns:1fr 108px 1fr;gap:8px;align-items:center}
+.dcol{display:flex;flex-direction:column;gap:6px;align-items:flex-start}.dcol.l{align-items:flex-end}.dcol .sl{width:58px;font-size:24px}
+.dc{height:178px;border-radius:16px;background:radial-gradient(rgba(255,255,255,.08),transparent 70%);display:flex;align-items:flex-end;justify-content:center;overflow:hidden;padding-bottom:6px}
+.dw{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:8px}
+.sl.wb{aspect-ratio:auto;min-height:56px;justify-content:flex-start;gap:8px;padding:4px 8px 6px;font-size:22px}
+.wb .wi{flex:none;width:44px;display:flex;justify-content:center}.wb .wt{display:flex;flex-direction:column;min-width:0;text-align:left}
+.wb .wt b{font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.wb .wt small{position:static;font-size:11px;color:var(--mut);font-weight:500}
+.chips{display:flex;gap:5px;flex-wrap:wrap;margin:10px 0 2px}.chip{display:inline-flex;align-items:center;gap:3px;padding:5px 8px;border-radius:99px;background:var(--cell);border:1px solid var(--ln);font:600 12px Inter,sans-serif;color:var(--tx)}
+.chip.g{color:#7fe07f}.chip.r{color:#ff8a7a}button.chip{cursor:pointer}
+.capw{display:flex;align-items:center;gap:8px;font:600 12px Inter,sans-serif;color:var(--mut);margin:-4px 0 10px}.capb{flex:1;height:7px;border-radius:9px;background:var(--cell);overflow:hidden}.capb i{display:block;height:100%;border-radius:9px}
+.hint2{font-size:12px;color:var(--mut);text-align:center;margin:8px 0 2px}
+#det.hide{display:none}
+.htabs{display:flex;gap:4px;background:var(--cell);border:1px solid var(--ln);border-radius:14px;padding:4px;margin:10px 0 6px;position:sticky;top:0;z-index:3;-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px)}
+.htabs button{flex:1;min-height:40px;border:0;border-radius:10px;background:transparent;color:var(--tx);font:600 12px Inter,sans-serif;padding:0 4px}.htabs button.on{background:#e8e8e8;color:#111}
+.hubw .tp{display:none}.hubw[data-tab=per] .tp-per,.hubw[data-tab=bag] .tp-bag,.hubw[data-tab=base] .tp-base{display:block}
+.srch{width:100%;min-height:40px;border-radius:12px;border:1px solid var(--ln);background:var(--cell);color:var(--tx);font:500 14px Inter,sans-serif;padding:0 12px;margin:2px 0 2px}
+.bcard{display:flex;align-items:center;gap:12px;background:var(--cell);border:1px solid var(--ln);border-radius:16px;padding:12px;margin-top:8px}.bcard .be{font-size:30px}.bcard div{flex:1;min-width:0}.bcard b{font-size:14px}.bcard small{display:block;font-size:12px;color:var(--mut);margin-top:2px}
+.bcard .lv{display:flex;gap:3px;margin-top:6px}.bcard .lv i{flex:1;height:5px;border-radius:5px;background:rgba(255,255,255,.12)}.bcard .lv i.on{background:#7fe07f}
+.acts button.p{background:#e8e8e8;color:#111;border-color:#e8e8e8}
 #grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px;margin-top:6px}
 .sl{aspect-ratio:1;background:var(--cell);border:1px solid var(--ln);border-radius:12px;position:relative;display:flex;align-items:center;justify-content:center;font-size:26px}
 .sl.bag{background:rgba(120,160,255,.07)}
@@ -88,12 +107,12 @@ canvas#g{position:fixed;inset:0;width:100%;height:100%;display:block}
 .sl .mdn{position:absolute;left:4px;bottom:6px;font-size:9px}
 .sl u{position:absolute;left:12%;bottom:3px;height:3px;border-radius:2px}
 .dbar{height:5px;background:rgba(255,255,255,.1);border-radius:3px;margin-top:4px;overflow:hidden}.dbar i{display:block;height:100%}
-#cap{font-size:12px;margin-top:12px;display:flex;justify-content:space-between;color:var(--mut)}
+#cap{font-size:12px;color:var(--mut)}
 #tot{margin-top:8px}
 .stg{display:grid;grid-template-columns:1fr 1fr;gap:4px 14px;font-size:12px;background:var(--cell);border:1px solid var(--ln);border-radius:14px;padding:9px 11px;margin-top:8px}
 .stg div{display:flex;justify-content:space-between;gap:6px}.stg span{color:var(--mut)}.stg .wl{grid-column:1/-1}.stg b{white-space:nowrap;font-weight:600}
 #det,#hDet{background:var(--cell);border:1px solid var(--ln);border-radius:16px;padding:11px;min-height:60px}
-#det{margin-top:10px}
+#det{margin-top:10px;position:sticky;bottom:-16px;max-height:52vh;overflow:auto;box-shadow:0 -10px 30px rgba(0,0,0,.55);border-radius:18px 18px 12px 12px;background:#1d1e21}
 #det h3,#hDet h3{margin:0 0 2px;font-size:16px;font-weight:700}
 .g{color:#7ee08a}.r{color:#ff7b72}
 .acts{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}
@@ -184,14 +203,15 @@ h1{font:800 clamp(30px,8vw,44px)/1.05 Inter,sans-serif;letter-spacing:-.03em;mar
 <div id="exBox" class="hide"></div>
 
 <div id="inv" class="ov hide"><div class="panel">
-  <div class="ph"><b>Inventário</b><button class="xb" id="invX">✕</button></div>
+  <div class="ph"><b>🎒 Mochila</b><button class="xb" id="invX">✕</button></div>
+  <div id="cap"></div>
   <div id="eq"></div>
   <div id="tot"></div>
-  <div id="cap"></div>
   <div class="qbrow" id="qbI"></div>
   <div class="tabs" id="tabI"></div>
   <div id="grid"></div>
-  <div id="det"></div>
+  <div class="hint2" id="invTip">Toca num item para ver o que faz · toque duplo para usar ou equipar</div>
+  <div id="det" class="hide"></div>
 </div></div>
 
 <div id="bauP" class="ov hide"><div class="panel"><div class="ph"><b id="bauN"></b><button class="xb" id="bauX">✕</button></div><div class="bauh">Toca num item da mochila para o meter no baú (máx. 6). Toca num item do baú para o tirar.</div><div id="bauS" class="bgrid"></div><div class="bauh">Mochila</div><div id="bauI" class="bgrid"></div><button id="bauGo" class="bgo">🎈 Enviar para o armazém</button></div></div>
@@ -244,16 +264,23 @@ h1{font:800 clamp(30px,8vw,44px)/1.05 Inter,sans-serif;letter-spacing:-.03em;mar
  <div class="hubw">
   <div class="ph"><b>🏚️ Esconderijo</b><span style="display:flex;gap:6px"><button class="sbtn" id="mpB">👥 Amigos</button><button class="sbtn" id="hName">👤 <span id="hNameT"></span> ✏️</button></span></div>
   <div id="hStats" style="font-size:12px;opacity:.75;margin-top:-6px"></div>
-  <div class="sec">Equipamento</div>
-  <div id="hEq" class="gr"></div>
-  <div id="hTot" style="font-size:12px;opacity:.8;margin-top:6px"></div>
-  <div id="hKits"></div>
-  <div class="qbrow" id="qbH"></div>
-  <div class="tabs" id="tabH"></div>
-  <div class="sec"><span>Mochila <span id="hInvN" style="opacity:.7"></span></span><button class="mini" id="hAll">Tudo para o armazém</button></div>
-  <div id="hInv" class="gr"></div>
-  <div class="sec"><span>Armazém <span id="hStN" style="opacity:.7"></span></span><span style="display:flex;gap:6px"><button class="mini" id="hArm">⬆️ Ampliar</button><button class="mini" id="hTrash">🗑️ Lixo</button><button class="mini" id="hSort">Arrumar</button></span></div>
-  <div id="hSt" class="gr"></div>
+  <div class="htabs" id="hTabs"><button data-ht="per">🧍 Personagem</button><button data-ht="bag">🎒 Mochila e armazém</button><button data-ht="base">🔧 Bancada</button></div>
+  <div class="tp tp-per">
+   <div id="hEq"></div>
+   <div id="hTot"></div>
+   <div id="hKits"></div>
+   <div class="qbrow" id="qbH"></div>
+  </div>
+  <div class="tp tp-bag">
+   <div class="sec"><span>Levas contigo <span id="hInvN" style="opacity:.7"></span></span><span style="display:flex;gap:6px" id="hKq"></span></div>
+   <div id="hInv" class="gr"></div>
+   <div class="hint2">Toque duplo num item para o passar entre a mochila e o armazém</div>
+   <div class="sec"><span>Armazém <span id="hStN" style="opacity:.7"></span></span><span style="display:flex;gap:6px"><button class="mini" id="hArm">⬆️ Ampliar</button><button class="mini" id="hTrash">🗑️ Lixo</button><button class="mini" id="hSort">Arrumar</button></span></div>
+   <input id="hQ" class="srch" placeholder="🔍 Procurar no armazém" autocomplete="off" spellcheck="false">
+   <div class="tabs" id="tabH"></div>
+   <div id="hSt" class="gr"></div>
+  </div>
+  <div class="tp tp-base" id="hBase"></div>
  </div>
  <div id="hBar"><div id="hTip">Toca num item para o gerir. O equipamento e a mochila arriscam-se no mundo; o armazém fica sempre seguro.</div><div id="hDet" class="hide"></div><div class="hb"><button id="hKit">Kit grátis</button><button id="hGo">ENTRAR NO MUNDO ▶</button></div></div>
 </div>
@@ -1441,7 +1468,7 @@ function renderRoom(){const el=$('hRoom');if(!el)return;const W0=el.clientWidth|
  el.innerHTML=h;}
 function roomAct(a){const go=id=>{const e=$(id);if(e)e.scrollIntoView({behavior:'smooth',block:'start'});};sfx('ui');
  if(a==='go')startRaid();
- else if(a==='stash')go('hSt');else if(a==='eq')go('hEq');else if(a==='inv')go('hInv');
+ else if(a==='stash'||a==='inv'||a==='eq'){hubTab=a==='eq'?'per':'bag';hubSel=null;renderHub();go('hTabs');}
  else if(a==='bench')openBase('banc');else if(a==='radio')openBase('radio');else if(a==='plant')openBase('horta');
  else if(a==='bed')toast('🛏️ Descansa um pouco. O mundo lá fora não espera.');}
 $('hRoom').addEventListener('click',e=>{const h=e.target.closest('[data-room]');if(h)roomAct(h.dataset.room);});
@@ -2083,6 +2110,20 @@ function wIcon(id,box){const f=icF(id);if(!f)return null;const s=Math.min(box/f[
 function slotHTML(it,label,attrs,isSel,bag){
  const d=it&&IT[it.id],r=d?rOf(it):-1,c=d?rc(it):'#333',nm=d&&it.mods?Object.keys(it.mods).length:0;
  return`<div class="sl${isSel?' sel':''}${bag?' bag':''}" ${attrs} style="border-color:${c};${r>0?`background:${c}22`:''}">${label&&!d?`<em>${label}</em>`:''}${d?(d.s==='arma'&&wCompIcon(it,40))||wIcon(it.id,d.s==='arma'?40:34)||d.e:''}${r>=0?`<i>${RARE[r]}</i>`:''}${nm?`<b class="mdn">🔧${nm}</b>`:''}${d&&d.w?`<u style="width:${Math.max(4,durOf(it)*.8)}%;background:${durCol(durOf(it))}"></u>`:''}${it&&it.q>1?`<small>${it.q}</small>`:''}</div>`;}
+// ---------- menu: boneco com o equipamento, números principais, barra de espaço ----------
+let statsOpen=false,lastTap={k:null,t:0},hubTab='per',invQ='';
+function wbHTML(it,k,attr,isSel){const d=it&&IT[it.id];let sub='vazio',bar='';
+ if(d){const w=wOf(it),dd=durOf(it);sub=`${w.dmg}${w.pel?'×'+w.pel:''} dano · ${(1000/w.rate).toFixed(1)}/s`;if(d.w)bar=`<u style="width:${Math.max(4,dd*.9)}%;background:${durCol(dd)}"></u>`;}
+ return`<div class="sl wb${isSel?' sel':''}" data-${attr}="${k}" style="${d?`border-color:${rc(it)}`:''}"><span class="wi">${d?(wCompIcon(it,44)||wIcon(it.id,40)||d.e):'<span style="opacity:.35">'+(k==='arma1'?'🔫':'🔪')+'</span>'}</span><span class="wt"><b>${d?d.n:SLOTN[k]}</b><small>${d?sub:SLOTN[k]+' · vazio'}</small></span>${bar}${it&&it.mods&&Object.keys(it.mods).length?`<b class="mdn">🔧${Object.keys(it.mods).length}</b>`:''}</div>`;}
+function dollHTML(eq,attr,selK){const g=k=>slotHTML(eq[k],SLOTN[k],`data-${attr}="${k}"`,selK===k);
+ const kind=OUTFIT[eq.armadura&&eq.armadura.id]||'pl0';
+ return`<div class="doll"><div class="dcol l">${g('capacete')}${g('armadura')}${g('botas')}</div><div class="dc">${sprSpan(kind+'_idle_0',160)}</div><div class="dcol">${g('mochila')}${g('fones')}</div></div><div class="dw">${wbHTML(eq.arma1,'arma1',attr,selK==='arma1')}${wbHTML(eq.arma2,'arma2',attr,selK==='arma2')}</div>`;}
+function chipsHTML(eq,live){const S=stats(eq),pc=v=>(v>0?'+':'')+Math.round(v*100)+'%';
+ const hp=live?`${Math.max(0,Math.ceil(P.hp))}/${P.maxhp}`:(100+S.hp);
+ return`<div class="chips"><span class="chip">❤️ ${hp}</span><span class="chip${S.def>0?' g':''}">🛡️ ${Math.round(S.def*100)}%</span><span class="chip${S.spd>0?' g':S.spd<0?' r':''}">👟 ${pc(S.spd)}</span><span class="chip${S.noise<0?' g':S.noise>0?' r':''}">🔊 ${pc(S.noise)}</span><button class="chip" data-stm="1">${statsOpen?'menos ▴':'mais ▾'}</button></div>`+(statsOpen?statsHTML(eq,live):'');}
+function capHTML(used,tot,extra){const f=tot?used/tot:0;return`<div class="capw"><span>Espaço</span><div class="capb"><i style="width:${Math.round(f*100)}%;background:${f>=1?'#ff7a6a':f>.8?'#e0c040':'#7fd07f'}"></i></div><span>${used}/${tot}</span>${extra?`<span>${extra}</span>`:''}</div>`;}
+function dblTap(key){const now=performance.now(),hit=lastTap.k===key&&now-lastTap.t<380;lastTap=hit?{k:null,t:0}:{k:key,t:now};return hit;}
+if(document.addEventListener)document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('[data-stm]');if(!b)return;statsOpen=!statsOpen;sfx('ui');if(state==='hub')renderHub();else if(state==='inv')renderInv();});
 function fmtMod(k,v){
  if(k==='gas'||k==='nv')return`<div class="g">${MODN[k]}</div>`;
  if(k==='radar'||k==='hp')return`<div class="${v>0?'g':'r'}">${MODN[k]} ${v>0?'+':''}${v}</div>`;
@@ -2124,38 +2165,44 @@ function catOf(id){const d=IT[id];if(!d)return'out';if(d.s==='arma')return'arma'
 function tabsHTML(lists){const n={};for(const L of lists)for(const it of L)if(it){const c=catOf(it.id);n[c]=(n[c]||0)+1;n.all=(n.all||0)+1;}
  return ICAT.filter(([k])=>k==='all'||n[k]||k===invF).map(([k,e,t])=>`<button data-cat="${k}" class="${invF===k?'on':''}">${e} ${t}<i>${n[k]||0}</i></button>`).join('');}
 function tabsShow(id){const t=$(id);if(!t||!t.querySelector)return;const b=t.querySelector('.on');if(b){const l=b.offsetLeft-t.offsetLeft;if(l<t.scrollLeft||l+b.offsetWidth>t.scrollLeft+t.clientWidth)t.scrollLeft=Math.max(0,l-12);}}
-function applyF(el,arr){if(!el||!el.children||!el.insertAdjacentHTML)return;const ch=el.children;let vis=0;for(let i=0;i<ch.length&&i<arr.length;i++){const it=arr[i],hide=invF!=='all'&&(!it||catOf(it.id)!==invF);ch[i].classList.toggle('fx',hide);if(!hide)vis++;}
- if(invF!=='all'&&!vis)el.insertAdjacentHTML('beforeend','<div class="fxe">Nada desta categoria aqui.</div>');}
+function applyF(el,arr,q){if(!el||!el.children||!el.insertAdjacentHTML)return;const ch=el.children;let vis=0;for(let i=0;i<ch.length&&i<arr.length;i++){const it=arr[i],hide=(invF!=='all'&&(!it||catOf(it.id)!==invF))||(!!q&&(!it||!IT[it.id]||!IT[it.id].n.toLowerCase().includes(q)));ch[i].classList.toggle('fx',hide);if(!hide)vis++;}
+ if((invF!=='all'||q)&&!vis)el.insertAdjacentHTML('beforeend',`<div class="fxe">${q?'Nada encontrado.':'Nada desta categoria aqui.'}</div>`);}
 if(document.addEventListener)document.addEventListener('click',e=>{const kb=e.target.closest&&e.target.closest('[data-kit]');if(kb&&state==='hub'){const v=kb.dataset.kit,k=+v[1];if(v[0]==='s'){if(kitsList()[k]&&!kb.dataset.ok){kb.dataset.ok=1;kb.textContent='Substituir?';setTimeout(()=>{delete kb.dataset.ok;},2500);return;}kitSave(k);}else kitApply(k);hubSel=null;renderHub();saveGame();}});
 if(document.addEventListener)document.addEventListener('click',e=>{const x=e.target.closest&&e.target.closest('[data-qbx]');if(x){const q=qbList(),k=+x.dataset.qbx;if(q[k]){q[k]=null;sfx('ui');}else toast('Toca num consumível e escolhe ⚡ Barra rápida');if(state==='hub')renderHub();else if(state==='inv')renderInv();renderQB(true);return;}});
 if(document.addEventListener)document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('[data-cat]');if(!b)return;invF=b.dataset.cat;sfx('ui');
  if(state==='hub')renderHub();else if(state==='inv')renderInv();});
 function renderInv(){
- $('eq').innerHTML=SLOTS.map(k=>slotHTML(P.eq[k],SLOTN[k],`data-eq="${k}"`,sel&&sel.eq===k)).join('');
+ $('eq').innerHTML=dollHTML(P.eq,'eq',sel&&sel.eq);
  $('grid').innerHTML=inv.map((it,i)=>slotHTML(it,'',`data-i="${i}"`,sel&&sel.i===i,i>=BASE_INV)).join('');$('qbI').innerHTML=qbRowHTML([inv]);$('tabI').innerHTML=tabsHTML([inv]);tabsShow('tabI');applyF($('grid'),inv);
- const used=inv.filter(Boolean).length;$('cap').innerHTML=`<span>Mochila: <b>${used}/${inv.length}</b> espaços</span><span>${P.eq.mochila?'+'+bagSlots(P.eq.mochila)+' da mochila':'Sem mochila'}</span>`;
- const S=stats();
- $('tot').innerHTML=statsHTML(P.eq,true);
+ const used=inv.filter(Boolean).length;$('cap').innerHTML=capHTML(used,inv.length,P.eq.mochila?'':'sem mochila');
+ $('tot').innerHTML=chipsHTML(P.eq,true);
  const it=sel?(sel.eq?P.eq[sel.eq]:inv[sel.i]):null,det=$('det');
- if(!it){det.innerHTML='<div style="opacity:.6">Toca num item para ver detalhes.</div>';return;}
+ $('invTip').classList.toggle('hide',!!it);det.classList.toggle('hide',!it);
+ if(!it){det.innerHTML='';return;}
  const d=IT[it.id];let h=itemInfo(it,inv)+repHTML(it,[inv])+modHTML(it,[inv]);
  h+='<div class="acts">';
- if(sel.eq)h+='<button data-a="uneq">Desequipar</button>';
+ if(sel.eq)h+='<button class="p" data-a="uneq">Desequipar</button>';
  else{
-  if(d.s==='arma')h+='<button data-a="e1">Primária</button><button data-a="e2">Secundária</button>';
-  else if(['capacete','armadura','botas','fones','mochila'].includes(d.s))h+='<button data-a="eq">Equipar</button>';
-  if(d.s==='use')h+='<button data-a="use">Usar</button>';
+  if(d.s==='arma')h+='<button class="p" data-a="e1">Primária</button><button data-a="e2">Secundária</button>';
+  else if(['capacete','armadura','botas','fones','mochila'].includes(d.s))h+='<button class="p" data-a="eq">Equipar</button>';
+  if(d.s==='use')h+='<button class="p" data-a="use">Usar</button>';
   if(d.s==='use'&&it.id!=='bau')h+=`<button data-a="qb">⚡ ${qbList().includes(it.id)?'Tirar da barra':'Barra rápida'}</button>`;
  }
  for(const q of mpNearPeers())h+=`<button data-a="give" data-to="${q.id}">🤝 Dar a ${cleanName(q.n)}</button>`;
- h+='<button class="d" data-a="drop">Largar</button></div>';det.innerHTML=h;
+ h+='<button class="d" data-a="drop">Largar</button></div>';det.innerHTML='<button class="hdx" data-dx="1">✕</button>'+h;
 }
 $('inv').addEventListener('click',e=>{
  if(e.target.id==='invX'||e.target.id==='inv'){closeInv();return;}
- const s=e.target.closest('.sl');
+ const s=e.target.closest('.sl');if(!s)lastTap.k=null;
  {const mb=e.target.closest('[data-ms],[data-mp],[data-mr],[data-rp],[data-rw]');if(mb&&sel){const it=sel.eq?P.eq[sel.eq]:inv[sel.i];if(it&&(repClick(mb,it,[inv])||modClick(mb,it,[inv]))){renderInv();return;}}}
- if(s){modPick=null;repPick=false;if(s.dataset.eq){sel=P.eq[s.dataset.eq]?{eq:s.dataset.eq}:null;}else{const i=+s.dataset.i;sel=inv[i]?{i}:null;}renderInv();return;}
- const b=e.target.closest('button[data-a]');if(!b||!sel)return;const a=b.dataset.a;
+ if(e.target.closest('[data-dx]')){sel=null;modPick=null;repPick=false;renderInv();return;}
+ if(s){modPick=null;repPick=false;const key=s.dataset.eq?'e'+s.dataset.eq:'i'+s.dataset.i;if(s.dataset.eq){sel=P.eq[s.dataset.eq]?{eq:s.dataset.eq}:null;}else{const i=+s.dataset.i;sel=inv[i]?{i}:null;}
+  if(sel&&dblTap(key)){const it=sel.eq?P.eq[sel.eq]:inv[sel.i],d=IT[it.id];
+   const qa=sel.eq?'uneq':d.s==='arma'?(P.eq.arma1&&!P.eq.arma2?'e2':'e1'):['capacete','armadura','botas','fones','mochila'].includes(d.s)?'eq':d.s==='use'?'use':null;
+   if(qa){invDo(qa,null);return;}}
+  renderInv();return;}
+ const b=e.target.closest('button[data-a]');if(!b||!sel)return;invDo(b.dataset.a,b);});
+function invDo(a,b){
  if(sel.eq){const it=P.eq[sel.eq];
   if(sel.eq==='mochila'&&(a==='uneq'||a==='drop')){
    const bagI=a==='uneq'?inv.slice(0,BASE_INV).indexOf(null):-1;
@@ -2174,10 +2221,10 @@ $('inv').addEventListener('click',e=>{
    if(it.id==='bau'){closeInv();toggleBuild(true);buildSel='bauc';renderBuild();toast('📦 Toca no chão onde queres pôr o baú');return;}useItem(it.id);it.q--;if(!it.q){inv[sel.i]=null;sel=null;}}
   else if(a==='drop'){dropGround(P.x,P.y,it,2,1);inv[sel.i]=null;sel=null;}
   else if(a==='qb'){qbToggle(it.id);}
-  else if(a==='give'){const q=MP.peers[b.dataset.to];if(q&&mpNearPeers().includes(q)){mpGive(q,it);inv[sel.i]=null;sel=null;}else toast('O teu amigo afastou-se');}
+  else if(a==='give'){const q=b&&MP.peers[b.dataset.to];if(q&&mpNearPeers().includes(q)){mpGive(q,it);inv[sel.i]=null;sel=null;}else toast('O teu amigo afastou-se');}
  }
  renderInv();
-});
+}
 
 // ---------- perfil, esconderijo e armazém ----------
 const STASH=200,EXR=110,EXT=8;
@@ -2287,14 +2334,18 @@ function trashToggleGroup(pred){const keys=trashList().filter(a=>pred(a[2])).map
 function renderHub(){
  const st=PROF.stats;renderRoom();updName();if(!PROF.name&&!nameCb&&!askName.open)setTimeout(()=>{if(state==='hub'&&!PROF.name)askName();},400);
  $('hStats').innerHTML=`${ie('moeda',18)} ${ammo('moeda',[...PROF.inv,...PROF.stash])} moedas · ${st.extr} extrações · ${st.deaths} mortes · ${st.kills} zombies`;
- $('hEq').innerHTML=SLOTS.map(k=>slotHTML(PROF.eq[k],SLOTN[k],`data-he="${k}"`,hubSel&&hubSel.k===k)).join('');
+ {const hw=document.querySelector('.hubw');if(hw&&hw.dataset)hw.dataset.tab=hubTab;const tb=$('hTabs');if(tb&&tb.querySelectorAll)tb.querySelectorAll('[data-ht]').forEach(b=>b.classList.toggle('on',b.dataset.ht===hubTab));}
+ $('hEq').innerHTML=dollHTML(PROF.eq,'he',hubSel&&hubSel.w==='e'&&hubSel.k);
  $('hInv').innerHTML=PROF.inv.map((it,i)=>slotHTML(it,'',`data-hi="${i}"`,hubSel&&hubSel.w==='i'&&hubSel.i===i,i>=BASE_INV)).join('');
- $('hSt').innerHTML=PROF.stash.map((it,i)=>slotHTML(it,'',`data-hs="${i}"`,hubSel&&hubSel.w==='s'&&hubSel.i===i)).join('');
- $('hKits').innerHTML=kitsHTML();$('qbH').innerHTML=qbRowHTML([PROF.inv]);$('tabH').innerHTML=tabsHTML([PROF.inv,PROF.stash]);tabsShow('tabH');applyF($('hInv'),PROF.inv);applyF($('hSt'),PROF.stash);
+ // armazém compacto: só as filas ocupadas e mais uma livre (com pesquisa/filtro mostra tudo o que encaixa)
+ {let last=-1;PROF.stash.forEach((x,i)=>{if(x)last=i;});const n=Math.min(PROF.stash.length,(Math.floor((last+1)/6)+1)*6);
+  $('hSt').innerHTML=PROF.stash.slice(0,n).map((it,i)=>slotHTML(it,'',`data-hs="${i}"`,hubSel&&hubSel.w==='s'&&hubSel.i===i)).join('');}
+ $('hKits').innerHTML=kitsHTML();$('qbH').innerHTML=qbRowHTML([PROF.inv]);$('tabH').innerHTML=tabsHTML([PROF.stash]);tabsShow('tabH');applyF($('hSt'),PROF.stash,invQ);
+ $('hKq').innerHTML=kitsList().map((K,k)=>K?`<button class="mini go" data-kit="a${k}">▶ Conjunto ${k+1}</button>`:'').join('')+'<button class="mini" id="hAll">Tudo para o armazém</button>';
+ $('hTot').innerHTML=chipsHTML(PROF.eq,false);
+ $('hBase').innerHTML=baseTabHTML();
  $('hInvN').textContent=`${PROF.inv.filter(Boolean).length}/${PROF.inv.length}`;
  $('hStN').textContent=`${PROF.stash.filter(Boolean).length}/${stashCap()}`;{const b=$('hArm');if(b){const lv=PROF.base.arm||0;b.textContent=lv<2?'⬆️ Ampliar':'📦 Máx.';}}
- const S=stats(PROF.eq);
- $('hTot').innerHTML=statsHTML(PROF.eq,false);
  const it=hubItem(),det=$('hDet');
  const fitPad=()=>{document.querySelector('.hubw').style.paddingBottom=($('hBar').offsetHeight+16)+'px';};
  $('hTrash').classList.toggle('on',trashMode);
@@ -2304,16 +2355,20 @@ function renderHub(){
  if(!it){det.innerHTML='';det.classList.add('hide');$('hTip').classList.remove('hide');fitPad();return;}
  det.classList.remove('hide');$('hTip').classList.add('hide');
  const d=IT[it.id];let h=itemInfo(it,[...PROF.inv,...PROF.stash])+repHTML(it,[PROF.inv,PROF.stash])+modHTML(it,[PROF.inv,PROF.stash])+'<div class="acts">';
- if(hubSel.w==='e')h+='<button data-h="toS">→ Armazém</button><button data-h="toI">→ Mochila</button>';
+ if(hubSel.w==='e')h+='<button class="p" data-h="toS">→ Armazém</button><button data-h="toI">→ Mochila</button>';
  else{
+  const mv=hubSel.w==='s'?'<button class="p" data-h="toI">🎒 Levar</button>':'<button class="p" data-h="toS">📦 Guardar</button>';
+  if(hubTab==='bag')h+=mv;
   if(d.s==='arma')h+='<button data-h="e1">Primária</button><button data-h="e2">Secundária</button>';
   else if(['capacete','armadura','botas','fones','mochila'].includes(d.s))h+='<button data-h="eq">Equipar</button>';
-  h+=hubSel.w==='s'?'<button data-h="toI">→ Mochila</button>':'<button data-h="toS">→ Armazém</button>';
+  if(hubTab!=='bag')h+=mv;
   if(d.s==='use'&&it.id!=='bau')h+=`<button data-h="qb">⚡ ${qbList().includes(it.id)?'Tirar da barra':'Barra rápida'}</button>`;
  }
  if(hubSel.w!=='e'&&isGear(it.id)){const r=it.r||0,n=fuseMates(it).length+1;
   if(r<4)h+=n>=3?`<button class="fu" data-h="fuse" style="border-color:${RAR[r+1]};color:${RAR[r+1]}">⬆ Fundir 3 → ${RARE[r+1]}</button>`:`<div class="fuh">⬆ Junta 3 ${IT[it.id].n} ${RARE[r]} para fazer 1 ${RARE[r+1]} (tens ${n}/3)</div>`;}
  h+=`<button class="d" data-h="trash">${hubTrash?'Confirmar?':'Deitar fora'}</button></div>`;det.innerHTML='<button class="hdx" data-hclose="1">✕</button>'+h;fitPad();}
+function baseTabHTML(){return'<div style="font-size:12px;color:var(--mut);margin:4px 0 2px">Melhora o esconderijo com moedas e materiais.</div>'+['banc','radio','horta','arm'].map(k=>{const B=BASE[k],lv=PROF.base[k]||0,mx=B.cost.length;
+ return`<div class="bcard"><span class="be">${B.e}</span><div><b>${B.n}</b> <span style="font-size:12px;color:var(--mut)">nível ${lv}/${mx}</span><small>${B.d[Math.min(lv,B.d.length-1)]}</small><div class="lv">${Array.from({length:mx},(_,i)=>`<i class="${i<lv?'on':''}"></i>`).join('')}</div></div><button class="mini" data-hb="${k}">${lv<mx?'Abrir':'Ver'}</button></div>`;}).join('');}
 function fuseMates(it){const r=it.r||0,o=[];for(const arr of [PROF.stash,PROF.inv])arr.forEach((x,i)=>{if(x&&x!==it&&x.id===it.id&&(x.r||0)===r)o.push([arr,i,x]);});return o;}
 function hubAction(a){
  const it=hubItem();if(!it)return;
@@ -2348,9 +2403,10 @@ const ORD={coin:-1,arma:0,capacete:1,armadura:2,fones:3,mochila:4,mod:5,use:6,re
 function sortStash(){const list=PROF.stash.filter(Boolean),st=new Array(Math.max(stashCap(),PROF.stash.length)).fill(null);
  const CO=Object.fromEntries(ICAT.map(([k],i)=>[k,i]));list.sort((a,b)=>CO[catOf(a.id)]-CO[catOf(b.id)]||ORD[IT[a.id].s]-ORD[IT[b.id].s]||rOf(b)-rOf(a)||a.id.localeCompare(b.id));
  for(const it of list)addTo(st,it);PROF.stash=st;}
+$('hub').addEventListener('input',e=>{if(e.target.id==='hQ'){invQ=e.target.value.trim().toLowerCase();renderHub();}});
 $('hub').addEventListener('change',e=>{if(e.target.id==='trItem'&&e.target.value){const id=e.target.value;trashToggleGroup(x=>x.id===id);renderHub();}});
 $('hub').addEventListener('click',e=>{
- const s=e.target.closest('.sl');
+ const s=e.target.closest('.sl');if(!s)lastTap.k=null;
  {const mb=e.target.closest('[data-ms],[data-mp],[data-mr],[data-rp],[data-rw]');if(mb&&hubSel){const it=hubItem();if(it&&(repClick(mb,it,[PROF.inv,PROF.stash])||modClick(mb,it,[PROF.inv,PROF.stash]))){renderHub();saveGame();return;}}}
  if(s&&trashMode){const ds=s.dataset;
   if(ds.he){toast('Desequipa primeiro para deitar fora');return;}
@@ -2360,8 +2416,12 @@ $('hub').addEventListener('click',e=>{
   if(ds.he)hubSel=PROF.eq[ds.he]?{w:'e',k:ds.he}:null;
   else if(ds.hi!=null)hubSel=PROF.inv[+ds.hi]?{w:'i',i:+ds.hi}:null;
   else if(ds.hs!=null)hubSel=PROF.stash[+ds.hs]?{w:'s',i:+ds.hs}:null;
+  // toque duplo: na mochila/armazém passa de um lado para o outro; no equipamento desequipa para o armazém
+  if(hubSel&&dblTap('h'+(ds.he||'')+(ds.hi!=null?'i'+ds.hi:'')+(ds.hs!=null?'s'+ds.hs:''))){hubAction(hubSel.w==='i'?'toS':hubSel.w==='s'?'toI':'toS');renderHub();saveGame();return;}
   sfx('ui');renderHub();return;}
+ const tb=e.target.closest('[data-ht]');if(tb){hubTab=tb.dataset.ht;hubSel=null;sfx('ui');renderHub();return;}
  const b=e.target.closest('button');if(!b)return;
+ if(b.dataset.hb){openBase(b.dataset.hb);return;}
  if(b.id==='hTrash'||b.dataset.tx){trashMode=b.id==='hTrash'?!trashMode:false;trashSel.clear();trashConf=false;hubSel=null;renderHub();return;}
  if(b.dataset.trr!=null){const r=+b.dataset.trr;trashToggleGroup(x=>rOf(x)===r);renderHub();return;}
  if(b.dataset.tclear){trashSel.clear();trashConf=false;renderHub();return;}
