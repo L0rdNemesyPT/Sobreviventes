@@ -1590,9 +1590,9 @@ function evDrop(){const s=openSpot(16,38);if(!s)return;const a=Math.random()<.5?
 function evHorde(){const L=threat(),a=Math.random()*6.28,warn=radioLv()>=2?25:7;
  evs.push({k:'horde',a,t:0,warn,n:12+L*2+Math.floor(Math.random()*5),zz:null});
  toast(radioLv()>=2?`📻 Rádio: horda vinda de ${DIRN(a)} daqui a ${warn} s!`:`🧟 Uma horda aproxima-se de ${DIRN(a)}!`);sfx('beep');}
-function evRescue(){const s=openSpot(14,30);if(!s)return;const e={k:'resc',x:s.x,y:s.y,hp:100,t:0,lim:200,c:Math.floor(Math.random()*4)};evs.push(e);
+function evRescue(){const s=openSpot(14,30);if(!s)return;const e={k:'resc',x:s.x,y:s.y,hp:100,t:0,lim:240,bar:45,c:Math.floor(Math.random()*4)};evs.push(e);
  const n=5+Math.floor(threat()/2);for(let k=0;k<n;k++){const a=Math.random()*6.28,r=mr(110,220);const z=mkZ(Math.random()<.2?'rapido':'normal',s.x+Math.cos(a)*r,s.y+Math.sin(a)*r);z.tg=e;}
- toast('📻 "Socorro! Estou cercado!" — um sobrevivente pede ajuda (marcado no mapa)');sfx('beep');}
+ toast('📻 "Socorro! Estou barricado, mas não aguento muito!" — um sobrevivente pede ajuda (marcado no mapa)');sfx('beep');}
 function updEvents(dt){
  if(!MPC())evT-=dt;if(evT<=0){evT=mr(360,600)*(radioLv()>=3?.75:1);const r=Math.random();if(r<.42)evDrop();else if(r<.72||radioLv()<1)evHorde();else evRescue();}
  if(!MPC())bossT-=dt;if(bossT<=0){bossT=75;const L=threat();if(L>=4&&!zs.some(z=>z.k==='chefe')&&Math.random()<.16+L*.02)spawnBoss();}
@@ -1616,7 +1616,10 @@ function updEvents(dt){
     if(!alive){e.done=1;const m=8+e.n*2;addItem({id:'moeda',q:m});sfx('rare');toast(`🏆 Horda derrotada! +${m} moedas`);ftext(P.x,P.y-40,'+'+m+' moedas','#ffd25a');}
     else if(e.t>e.warn+200)e.done=1;}}
   else if(e.k==='resc'){
-   let near=0;for(const z of zs)if(!z.dead&&!ZT[z.k].hum){const dz=Math.hypot(z.x-e.x,z.y-e.y);if(dz<38){e.hp-=9*dt*(z.k==='tank'?2.5:1);if(Math.random()<dt*2)blood(e.x,e.y,null,2);}if(dz<230)near++;}
+   // primeiro aguenta-se barricado (~45 s); depois os zombies entram, mas o dano tem limite por segundo
+   const brk=e.t>=e.bar;if(brk&&!e.brk){e.brk=1;if(d<1800)toast('📻 "Eles entraram! Despacha-te!"');sfx('beep');}
+   let near=0,hurt=0;for(const z of zs)if(!z.dead&&!ZT[z.k].hum){const dz=Math.hypot(z.x-e.x,z.y-e.y);if(dz<38&&brk){hurt+=z.k==='tank'?6:2.5;if(Math.random()<dt*2)blood(e.x,e.y,null,2);}if(dz<230)near++;}
+   e.hp-=Math.min(hurt,8)*dt;
    if(e.hp<=0){e.done=1;toast('💀 O sobrevivente não aguentou…');decal(e.x,e.y,20,'blood');continue;}
    if(d<75&&!near){e.done=1;const m=mri(25,55);dropGround(e.x,e.y,{id:'moeda',q:m});for(let k=0;k<2;k++)dropGround(e.x,e.y,roll(LOOT.mcrate,'mcrate'));
     if(Math.random()<.15)dropGround(e.x,e.y,{id:'bau',q:1});sfx('rare');toast('🙏 "Obrigado! Toma isto, e boa sorte."');ftext(e.x,e.y-40,'Salvo!','#7ee08a');continue;}
@@ -1628,7 +1631,7 @@ function drawEventsWorld(){for(const e of evs){
   if(e.k==='drop'&&e.ph==='fall'){const y=e.y-e.fh;cx.fillStyle='rgba(0,0,0,.25)';cx.beginPath();cx.ellipse(e.x,e.y+8,16*(1-e.fh/400),6,0,0,7);cx.fill();
    if(ATL.ok&&ATL.f.ev_fall)spr('ev_fall',e.x,y+20,.5,1);else{cx.fillStyle='#f0f0e8';cx.beginPath();cx.arc(e.x,y-34,22,Math.PI,0);cx.fill();cx.strokeStyle='#ddd';cx.beginPath();cx.moveTo(e.x-20,y-34);cx.lineTo(e.x-8,y-8);cx.moveTo(e.x+20,y-34);cx.lineTo(e.x+8,y-8);cx.stroke();cx.fillStyle='#556b2f';cx.fillRect(e.x-12,y-10,24,18);}}
   else if(e.k==='resc'){const k='npc'+(e.c%4)+'_idle_'+(Math.floor(time*2)%2);if(ATL.ok&&ATL.f[k])spr(k,e.x,e.y+14,.5,1);else{cx.fillStyle='#d9a066';cx.beginPath();cx.arc(e.x,e.y,13,0,7);cx.fill();}
-   hpBar(e.x,e.y-52,40,e.hp/100);cx.font='bold 13px Inter,sans-serif';cx.textAlign='center';cx.fillStyle='#000';cx.fillText('SOS',e.x+1,e.y-60+1);cx.fillStyle=Math.sin(time*6)>0?'#ff6a5a':'#fff';cx.fillText('SOS',e.x,e.y-60);}}}
+   hpBar(e.x,e.y-52,40,e.hp/100);cx.font='bold 13px Inter,sans-serif';cx.textAlign='center';const lb=e.t<e.bar?'🛡️ '+Math.ceil(e.bar-e.t)+'s':'SOS';cx.fillStyle='#000';cx.fillText(lb,e.x+1,e.y-60+1);cx.fillStyle=e.t<e.bar?'#ffe08a':Math.sin(time*6)>0?'#ff6a5a':'#fff';cx.fillText(lb,e.x,e.y-60);}}}
 function drawEventsSky(){for(const e of evs){if(e.k!=='drop'||e.ph==='land')continue;
   const a=e.dir>0?0:Math.PI;cx.fillStyle='rgba(0,0,0,.22)';cx.save();cx.translate(e.px+60,e.py+220);cx.rotate(a);cx.beginPath();cx.ellipse(0,0,70,16,0,0,7);cx.fill();cx.fillRect(-14,-70,26,140);cx.restore();
   if(ATL.ok&&ATL.f.ev_plane){cx.save();cx.translate(e.px,e.py);if(e.dir<0)cx.scale(-1,1);spr('ev_plane',0,0,.5,.5,1.4);cx.restore();}
