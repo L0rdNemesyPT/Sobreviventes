@@ -326,7 +326,7 @@ function makeNoise(sz){const n=sz+2,g=new Float32Array(n*n);for(let i=0;i<g.leng
 // ---------- dados ----------
 const RAR=['#d0d0d0','#4fd04f','#3d8bff','#b05cff','#ffc531'],RARN=['Comum','Incomum','Raro','Muito Raro','Lendário'],RARE=['⚪️','🟢','🔵','🟣','🟡'];
 const RMUL=[1,1.1,1.2,1.32,1.45],BASE_INV=20;
-const RROLL={crate:[55,28,12,4,1],mcrate:[12,30,32,19,7],zombie:[45,30,15,7,3],box:[60,26,10,3,1],bag:[50,30,13,5,2],gcase:[18,34,29,14,5],cab:[50,30,13,5,2],fridge:[100,0,0,0,0],car:[52,30,12,5,1],drop:[8,22,36,24,10],kitch:[70,22,6,2,0],shelf:[60,26,10,3,1],desk:[50,30,14,5,1],dump:[58,28,10,3,1],lixo:[65,25,8,2,0],med:[55,28,12,4,1],pol:[20,34,28,13,5],gun:[15,32,31,16,6],food:[60,26,10,3,1],drink:[60,26,10,3,1],gasshop:[60,26,10,3,1],band:[18,34,29,14,5]};
+const RROLL={crate:[55,28,12,4,1],mcrate:[12,30,32,19,7],zombie:[45,30,15,7,3],box:[60,26,10,3,1],bag:[50,30,13,5,2],gcase:[18,34,29,14,5],cab:[50,30,13,5,2],fridge:[100,0,0,0,0],car:[52,30,12,5,1],drop:[8,22,36,24,10],kitch:[70,22,6,2,0],shelf:[60,26,10,3,1],desk:[50,30,14,5,1],dump:[58,28,10,3,1],lixo:[65,25,8,2,0],med:[55,28,12,4,1],pol:[20,34,28,13,5],gun:[40,40,15,4,1],medx:[30,38,22,8,2],tools:[45,33,15,6,1],food:[60,26,10,3,1],drink:[60,26,10,3,1],gasshop:[60,26,10,3,1],band:[18,34,29,14,5]};
 const FISTS={t:'m',dmg:8,rate:420,rng:40,arc:1.3,kb:8};
 const IT={
  faca:{n:'Faca',e:'🔪',s:'arma',r:0,w:{uses:700,t:'m',dmg:20,rate:340,rng:46,arc:1.2,kb:10},m:{spd:.05},d:'Leve e rápida.'},
@@ -461,9 +461,11 @@ const LOOT={
  kitch:[['enlatado',10],['bolachas',8],['agua',8],['refri',6],['pao',5],['sumo',4],['racao',2],['bagas',3,2,5],['compota',1.5],['faca',2],['moeda',3,1,5]],
  shelf:[['pega_bor',2],['serrilha',1.5],['contrap',.8],['moeda',6,2,8],['fita',3],['kit_lamina',3],['penso',4],['ligadura',3],['analgesico',2],['b9',3,4,10],['bone',2],['fones_v',2],['mira_pv',1],['afiar',1.5]],
  desk:[['mira_holo',1],['laser',1],['moeda',12,4,15],['b9',6,6,14],['kit_arma',3],['mira_pv',2],['carr_ext',2],['silenc',1],['punho_v',1.5],['pistola',2],['fones_m',1.5],['analgesico',2]],
- med:[['penso',14,1,3],['ligadura',12,1,2],['analgesico',9,1,2],['antidoto',6],['kit',4],['seringa',1.2],['agua',4]],
+ med:[['penso',9,1,2],['ligadura',9,1,2],['analgesico',8,1,2],['antidoto',6],['kit',5],['seringa',1.2],['agua',3]],
+ medx:[['kit',6],['seringa',2],['antidoto',4],['analgesico',3,1,2]],
+ tools:[['kit_arma',4],['kit_lamina',4],['fita',4],['arame',3,1,2],['afiar',2],['pecabra',1.5],['picareta',.8],['machado',.8]],
  pol:[['b9',12,10,24],['cart',7,4,10],['pistola',3],['colete',2.5],['cap_mota',2],['deagle',1],['cacadeira',1.5],['granada',1.5],['revolver',1.2],['kit_arma',2],['penso',4],['moeda',6,3,10]],
- gun:[['pistola',4],['smg',2.5],['cacadeira',2.5],['tatica',1.5],['ak',1],['m4',.8],['b9',6,10,24],['cart',5,4,10],['brif',4,10,24],['kit_arma',2]],
+ gun:[['pistola',5],['revolver',2],['smg',2.5],['cacadeira',3],['tatica',1.2],['ak',.7],['m4',.5]],
  food:[['enlatado',14],['bolachas',12],['pao',8],['agua',12],['refri',8],['sumo',5],['racao',2],['sandes',3],['maca',6]],
  drink:[['agua',16],['refri',12],['sumo',8],['energetica',4],['agua_serra',.4]],
  gasshop:[['bolachas',10],['refri',10],['energetica',5],['agua',8],['kit_arma',2],['kit_lamina',2],['moeda',8,3,12]],
@@ -862,18 +864,20 @@ const CONT={
  dresser:{n:'Cómoda',hp:35,loot:'cab',c:[2,3],hit:'crate',brk:'door',col:'#8a5a2a',open:'dresser_o'},
  washer:{n:'Máquina de Lavar',hp:45,loot:'bag',c:[2,3],hit:'metal',brk:'clank',col:'#dcdcdc',open:'washer_o'},
  pc:{n:'Computador',hp:30,loot:'desk',c:[2,4],hit:'crate',brk:'door',col:'#5a3a22',open:'pc_o'},
- medcab:{n:'Armário de Medicamentos',hp:35,loot:'med',c:[2,4],hit:'metal',brk:'clank',col:'#e8e8e8',open:'medcab_o'},
+ medcab:{n:'Armário de Medicamentos',hp:35,loot:'med',c:[1,3],hit:'metal',brk:'clank',col:'#e8e8e8',open:'medcab_o'},
  locker:{n:'Cacifos',hp:45,loot:'pol',c:[2,3],hit:'metal',brk:'clank',col:'#8a8a8a',open:'locker_o'},
- gunrack:{n:'Suporte de Armas',hp:40,loot:'gun',c:[1,2],hit:'crate',brk:'door',col:'#6a4a2a',open:'gunrack_o'},
- smshelf:{n:'Prateleira',hp:30,loot:'food',c:[2,4],hit:'crate',brk:'crack',col:'#bbb',open:'smshelf_o'},
- dfridge:{n:'Frigorífico de Bebidas',hp:40,loot:'drink',c:[2,4],hit:'metal',brk:'clank',col:'#c0c0c0',open:'dfridge_o'},
- cfreez:{n:'Arca Congeladora',hp:40,loot:'fridge',c:[2,4],hit:'metal',brk:'clank',col:'#d8dde0',open:'cfreez_o'},
- pallet:{n:'Palete de Mantimentos',hp:30,loot:'food',c:[3,5],hit:'soft',brk:'rip',col:'#c49a5c',open:'pallet_o'},
- gcount:{n:'Balcão da Bomba',hp:35,loot:'gasshop',c:[2,4],hit:'crate',brk:'door',col:'#8a6a3a',open:'gcount_o'},
+ gunrack:{n:'Suporte de Armas',hp:40,loot:'gun',c:[1,1],hit:'crate',brk:'door',col:'#6a4a2a',open:'gunrack_o'},
+ smshelf:{n:'Prateleira',hp:30,loot:'food',c:[1,2],hit:'crate',brk:'crack',col:'#bbb',open:'smshelf_o'},
+ dfridge:{n:'Frigorífico de Bebidas',hp:40,loot:'drink',c:[1,2],hit:'metal',brk:'clank',col:'#c0c0c0',open:'dfridge_o'},
+ cfreez:{n:'Arca Congeladora',hp:40,loot:'fridge',c:[1,3],hit:'metal',brk:'clank',col:'#d8dde0',open:'cfreez_o'},
+ pallet:{n:'Palete de Mantimentos',hp:30,loot:'food',c:[2,3],hit:'soft',brk:'rip',col:'#c49a5c',open:'pallet_o'},
+ gcount:{n:'Balcão da Bomba',hp:35,loot:'gasshop',c:[2,3],hit:'crate',brk:'door',col:'#8a6a3a',open:'gcount_o'},
+ mcart:{n:'Maca de Emergência',hp:30,loot:'medx',c:[1,1],hit:'metal',brk:'clank',col:'#e0e0e0',open:'mcart_o'},
+ tshelf:{n:'Prateleira de Ferramentas',hp:30,loot:'tools',c:[1,2],hit:'crate',brk:'crack',col:'#6a4a2a',open:'tshelf_o'},
  lug:{n:'Malas de Viagem',hp:15,loot:'bag',c:[1,3],hit:'soft',brk:'cloth',col:'#6a4a3a',open:'lug_o'},
  fridge:{n:'Frigorífico',hp:45,loot:'fridge',c:[2,5],hit:'metal',brk:'clank',col:'#dcdcdc',open:'fridge_o'}
 };
-const FURN={lug_o:1,medcab_o:1,locker_o:1,gunrack_o:1,smshelf_o:1,dfridge_o:1,cfreez_o:1,pallet_o:1,gcount_o:1,drop_o:1,cab_o:1,fridge_o:1,dump_o:1,kitch_o:1,shelf_o:1,desk_o:1,ward_o:1,dresser_o:1,washer_o:1,pc_o:1};
+const FURN={mcart_o:1,tshelf_o:1,lug_o:1,medcab_o:1,locker_o:1,gunrack_o:1,smshelf_o:1,dfridge_o:1,cfreez_o:1,pallet_o:1,gcount_o:1,drop_o:1,cab_o:1,fridge_o:1,dump_o:1,kitch_o:1,shelf_o:1,desk_o:1,ward_o:1,dresser_o:1,washer_o:1,pc_o:1};
 const BAGC=['#5a3a6a','#7a2a2a','#2a4a6a','#3a3a3a','#6a5a2a'];
 // ---------- sprites (atlas) ----------
 let ATLU='atlas-fd4572c5.webp';const ATLP='atlas-f27b24d2.png';
@@ -904,7 +908,7 @@ function groundTile(i,tx,ty){const t=tiles[i],x=tx*TS,y=ty*TS;const g=GTEX[t];
  const vert=!hz&&vt;
  if(vert){cx.save();cx.translate(x+24,y+24);cx.rotate(Math.PI/2);cx.drawImage(ATL.img,f[0],f[1],f[2],f[3],-24,-24,TS+.5,TS+.5);cx.restore();}
  else cx.drawImage(ATL.img,f[0],f[1],f[2],f[3],x,y,TS+.5,TS+.5);}
-const CSPR={crate:'c_crate',mcrate:'c_mcrate',box:'c_box',bag:'c_bag',gcase:'c_gcase',cab:'c_cab',fridge:'c_fridge',cab_o:'o_cab',fridge_o:'o_fridge',drop:'ev_land',drop_o:'ev_open',dump:'p_dump',dump_o:'p_dump',lixo:'p_lixo',kitch:'f_kitch',kitch_o:'f_kitch',shelf:'f_shelf',shelf_o:'f_shelf',desk:'f_desk',desk_o:'f_desk',ward:'f_ward',ward_o:'f_ward',dresser:'f_dresser',dresser_o:'f_dresser',washer:'f_washer',washer_o:'f_washer',pc:'f_pc',pc_o:'f_pc',medcab:'f_medcab',medcab_o:'f_medcab',locker:'f_locker',locker_o:'f_locker',gunrack:'f_gunrack',gunrack_o:'f_gunrack',smshelf:'f_smshelf',smshelf_o:'f_smshelf',dfridge:'f_dfridge',dfridge_o:'f_dfridge',cfreez:'f_cfreez',cfreez_o:'f_cfreez',pallet:'f_pallet',pallet_o:'f_pallet',gcount:'f_gcount',gcount_o:'f_gcount',lug:'p_lug',lug_o:'p_lug2'};
+const CSPR={crate:'c_crate',mcrate:'c_mcrate',box:'c_box',bag:'c_bag',gcase:'c_gcase',cab:'c_cab',fridge:'c_fridge',cab_o:'o_cab',fridge_o:'o_fridge',drop:'ev_land',drop_o:'ev_open',dump:'p_dump',dump_o:'p_dump',lixo:'p_lixo',kitch:'f_kitch',kitch_o:'f_kitch',shelf:'f_shelf',shelf_o:'f_shelf',desk:'f_desk',desk_o:'f_desk',ward:'f_ward',ward_o:'f_ward',dresser:'f_dresser',dresser_o:'f_dresser',washer:'f_washer',washer_o:'f_washer',pc:'f_pc',pc_o:'f_pc',medcab:'f_medcab',medcab_o:'f_medcab',locker:'f_locker',locker_o:'f_locker',gunrack:'f_gunrack',gunrack_o:'f_gunrack',smshelf:'f_smshelf',smshelf_o:'f_smshelf',dfridge:'f_dfridge',dfridge_o:'f_dfridge',cfreez:'f_cfreez',cfreez_o:'f_cfreez',pallet:'f_pallet',pallet_o:'f_pallet',gcount:'f_gcount',gcount_o:'f_gcount',lug:'p_lug',lug_o:'p_lug2',mcart:'f_stretch',mcart_o:'f_stretch',tshelf:'f_shelf',tshelf_o:'f_shelf'};
 const DSPR={lixo:'o_bag',crate:'o_crate',mcrate:'o_crate',box:'o_box',bag:'o_bag',gcase:'o_gcase',cab:'o_crate'};
 // --
 
@@ -1263,7 +1267,7 @@ function drawGroundChunks(tx0,tx1,ty0,ty1){
  if(chunks.size>34){let ok=null,ou=1e18;for(const [k,c] of chunks)if(c.u<ou){ou=c.u;ok=k;}chunks.delete(ok);}}
 
 // ---------- casas: garagens, quintais, piscinas, mobília ----------
-const FH=58,CW={kitch:2,kitch_o:2,pc:2,pc_o:2,locker:2,locker_o:2,gunrack:2,gunrack_o:2,smshelf:2,smshelf_o:2,cfreez:2,cfreez_o:2,pallet:2,pallet_o:2,gcount:2,gcount_o:2,lug:2,lug_o:2};
+const FH=58,CW={kitch:2,kitch_o:2,pc:2,pc_o:2,locker:2,locker_o:2,gunrack:2,gunrack_o:2,smshelf:2,smshelf_o:2,cfreez:2,cfreez_o:2,pallet:2,pallet_o:2,gcount:2,gcount_o:2,lug:2,lug_o:2,mcart:2,mcart_o:2};
 const FS={brick:['f_brick','f_brickv','f_brickp'],pick:['f_pick','f_pickv',null],hedge:['f_hedge','f_hedgev',null]};
 function putFurn(x,y,s,w,h,cont){w=w||1;h=h||1;for(let r=0;r<h;r++)for(let k=0;k<w;k++){const i=(y-r)*W+x+k;if(tiles[i]!==T.FLOOR||obj[i])return false;}
  const m=y*W+x;obj[m]=cont?{t:cont,hp:CONT[cont].hp}:{t:'prop',s,w,cv:0};for(let r=0;r<h;r++)for(let k=0;k<w;k++)if(r||k)obj[(y-r)*W+x+k]={t:'propx',cv:0,m};return true;}
@@ -3729,18 +3733,20 @@ function furnishPOI(h,k,PR){const x0=h.x+1,x1=h.x+h.w-2,y0=h.y+1,y1=h.y+h.h-2,ri
  const reach=()=>{const s=[h.door[0],h.door[1]-1];let tot=0;for(let y=y0;y<=y1;y++)for(let x=x0;x<=x1;x++){const i=y*W+x;if(FL(i)&&!obj[i])tot++;}
   const seen=new Set([s[1]*W+s[0]]),st=[s];let n=0;while(st.length){const [cx2,cy2]=st.pop();n++;for(const [a,b] of [[1,0],[-1,0],[0,1],[0,-1]]){const nx=cx2+a,ny=cy2+b,i=ny*W+nx;if(!inB(nx,ny)||seen.has(i)||!FL(i)||obj[i])continue;seen.add(i);st.push([nx,ny]);}}return n>=tot;};
  const put=(x,y,s,w,hh,cont)=>{for(let r=0;r<hh;r++)for(let c=0;c<w;c++){const xx=x+c,yy=y-r,i=yy*W+xx;if(!inB(xx,yy)||!FL(i)||obj[i]||keep.has(i))return false;}
-  const m=y*W+x;obj[m]=cont?{t:cont,hp:CONT[cont].hp}:{t:'prop',s,w,cv:0};for(let r=0;r<hh;r++)for(let c=0;c<w;c++)if(r||c)obj[(y-r)*W+x+c]={t:'propx',cv:0,m};
+  const m=y*W+x;obj[m]=cont?{t:cont,hp:CONT[cont]?CONT[cont].hp:0}:{t:'prop',s,w,cv:0};for(let r=0;r<hh;r++)for(let c=0;c<w;c++)if(r||c)obj[(y-r)*W+x+c]={t:'propx',cv:0,m};
   if(reach())return true;for(let r=0;r<hh;r++)for(let c=0;c<w;c++)obj[(y-r)*W+x+c]=null;return false;};
  const fv=(v)=>{for(let y=y0;y<=y1;y++)for(let x=x0;x<=x1;x++)fvar&&(fvar[y*W+x]=v);};
  if(k==='hosp'){fv(2);for(let x=x0;x+1<=x1;x+=3){put(x,y0,'f_hbed',2,1);put(x+2,y0,'f_iv',1,1);}
   for(let y=y0+2;y<=y1-1;y+=2){put(x0,y,'medcab',1,1,'medcab');put(x1,y,'medcab',1,1,'medcab');}
-  put(x0+2,y0+3,'f_stretch',2,1);put(x1-3,y0+3,'f_stretch',2,1);put(x0+2,y1,'f_pdesk',2,1);put(x1-1,y1,'medcab',1,1,'medcab');}
+  put(x0+2,y0+3,'mcart',2,1,'mcart');put(x1-3,y0+3,'f_stretch',2,1);put(x0+2,y1,'f_pdesk',2,1);put(x1-1,y1,'medcab',1,1,'medcab');}
  else if(k==='pol'){fv(4);put(x0,y0,'locker',2,1,'locker');put(x0+2,y0,'locker',2,1,'locker');put(x0+5,y0,'gunrack',2,1,'gunrack');
   put(x1-1,y1,'f_cell',2,2);put(x0+1,y0+3,'f_pdesk',2,1);put(x0+4,y0+3,'f_pdesk',2,1);put(x0,y1,'locker',2,1,'locker');}
- else if(k==='shop'){fv(1);for(let x=x0;x<=x1;x+=1)if(x!==x0+4&&x!==x0+5)put(x,y0,'dfridge',1,1,'dfridge');
-  for(const y of [y0+2,y0+3])for(let x=x0+1;x+1<=x1-1;x+=3)put(x,y,'smshelf',2,1,'smshelf');
+ else if(k==='shop'){fv(1);const sq=c=>PR()<.5?c:c+'_o';for(let x=x0;x<=x1;x+=1)if(x!==x0+4&&x!==x0+5)put(x,y0,'dfridge',1,1,sq('dfridge'));
+  for(const y of [y0+2,y0+3])for(let x=x0+1;x+1<=x1-1;x+=3)put(x,y,'smshelf',2,1,sq('smshelf'));
   put(x0,y1,'f_checkout',2,1);put(x1-1,y1,'f_checkout',2,1);for(const [xx,yy] of [[x1-1,y0+4],[x1-1,y0+1],[x0+6,y1]])if(put(xx,yy,'cfreez',2,1,'cfreez'))break;for(const [xx,yy] of [[x0,y0+4],[x0,y0+1],[x0+3,y0+4]])if(put(xx,yy,'pallet',2,1,'pallet'))break;put(x0+3,y1,'f_cart',1,1);}
- else if(k==='gas'){fv(1);put(x0,y0,'gcount',2,1,'gcount');put(x1,y0,'dfridge',1,1,'dfridge');put(x0,y1,'pallet',2,1,'pallet');}
+ else if(k==='gas'){fv(1);put(x0,y0,'gcount',2,1,'gcount');put(x1,y0,'dfridge',1,1,'dfridge');
+  for(const [xx,yy] of [[x0,y1],[x0,y0+1],[x1-1,y0+1]])if(put(xx,yy,'pallet',2,1,'pallet'))break;
+  for(const [xx,yy] of [[x1,y0+1],[x0,y1],[x1,y1],[x0+2,y0]])if(put(xx,yy,'tshelf',1,1,'tshelf'))break;}
 }
 function updPOI(){if(!pois.length||MPC())return;for(const p of pois){if(p.woke||Math.hypot(p.x-P.x,p.y-P.y)>1000)continue;p.woke=1;
  const h=p.h,n=POIK[p.k].z+Math.min(6,threat());let made=0;
