@@ -90,6 +90,8 @@ canvas#g{position:fixed;inset:0;width:100%;height:100%;display:block}
 .capw{display:flex;align-items:center;gap:8px;font:600 12px Inter,sans-serif;color:var(--mut);margin:-4px 0 10px}.capb{flex:1;height:7px;border-radius:9px;background:var(--cell);overflow:hidden}.capb i{display:block;height:100%;border-radius:9px}
 .hint2{font-size:12px;color:var(--mut);text-align:center;margin:8px 0 2px}
 #det.hide{display:none}
+#inv.hurt::after,#bauP.hurt::after{content:'';position:absolute;inset:0;pointer-events:none;border-radius:inherit;box-shadow:inset 0 0 0 4px rgba(255,90,80,.9),inset 0 0 60px rgba(255,60,50,.55);background:rgba(255,60,50,.16);animation:hurtF .45s ease-out forwards}
+@keyframes hurtF{from{opacity:1}to{opacity:0}}
 .htabs{display:flex;gap:4px;background:var(--cell);border:1px solid var(--ln);border-radius:14px;padding:4px;margin:10px 0 6px;position:sticky;top:0;z-index:3;-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px)}
 .htabs button{flex:1;min-height:40px;border:0;border-radius:10px;background:transparent;color:var(--tx);font:600 12px Inter,sans-serif;padding:0 4px}.htabs button.on{background:#e8e8e8;color:#111}
 .hubw .tp{display:none}.hubw[data-tab=bag] .tp-bag,.hubw[data-tab=base] .tp-base{display:block}
@@ -1997,7 +1999,9 @@ function dmgZ(z,dmg,ang,kb,expl){
   if(mine)zLoot(z);}
 }
 function alertZ(rad){rad*=1-WX.r*.35;for(const z of zs)if(Math.hypot(z.x-P.x,z.y-P.y)<rad*(ZT[z.k].hum?1.5:1))z.alert=Math.max(z.alert,6);for(const a of animals)if(Math.hypot(a.x-P.x,a.y-P.y)<rad)a.flee=Math.max(a.flee,5);}
-function hurtP(d,S){if(P.down){P.downT-=1.5;return;}if(P.reviveT>0)return;if(P.mp){mpSend('bite',{s:seed,to:P.mp,d:Math.round(d*10)/10,p:P.poisonHit?1:0});return;}P.hp-=d*(1-S.def);P.barT=3;P.hurt=.25;shake=Math.min(8,shake+d*.4);sfx('hurt');blood(P.x,P.y,null,4);}
+function hurtP(d,S){if(P.down){P.downT-=1.5;return;}if(P.reviveT>0)return;if(P.mp){mpSend('bite',{s:seed,to:P.mp,d:Math.round(d*10)/10,p:P.poisonHit?1:0});return;}P.hp-=d*(1-S.def);P.barT=3;P.hurt=.25;shake=Math.min(8,shake+d*.4);sfx('hurt');blood(P.x,P.y,null,4);hurtFlash();}
+// com a mochila (ou um baú) aberta, o ecrã pisca a vermelho para saberes que te estão a atacar
+function hurtFlash(){const e=state==='inv'?$('inv'):state==='bau'?$('bauP'):null;if(!e||!e.classList)return;e.classList.remove('hurt');void e.offsetWidth;e.classList.add('hurt');clearTimeout(hurtFlash.t);hurtFlash.t=setTimeout(()=>e.classList.remove('hurt'),500);}
 
 function attack(S){
  const w=curWeapon();
@@ -2400,19 +2404,20 @@ function renderHub(){
  h+=`<button class="d" data-h="trash">${hubTrash?'Confirmar?':'Deitar fora'}</button></div>`;det.innerHTML='<button class="hdx" data-hclose="1">✕</button>'+h;fitPad();}
 function baseTabHTML(){return'<div style="font-size:12px;color:var(--mut);margin:4px 0 2px">Melhora o esconderijo com moedas e materiais.</div>'+['banc','radio','horta','arm'].map(k=>{const B=BASE[k],lv=PROF.base[k]||0,mx=B.cost.length;
  return`<div class="bcard"><span class="be">${B.e}</span><div><b>${B.n}</b> <span style="font-size:12px;color:var(--mut)">nível ${lv}/${mx}</span><small>${B.d[Math.min(lv,B.d.length-1)]}</small><div class="lv">${Array.from({length:mx},(_,i)=>`<i class="${i<lv?'on':''}"></i>`).join('')}</div></div>${k==='horta'&&harvCount()?`<button class="mini go" data-hcol="1">Colher ${harvCount()}</button>`:`<button class="mini" data-hb="${k}">${lv<mx?'Abrir':'Ver'}</button>`}</div>`;}).join('');}
+function modsBack(it){let lost=0;if(it&&it.mods)for(const k in it.mods){const md=it.mods[k];if(md&&IT[md.id]){const b={id:md.id,q:1,r:md.r||0};if(addTo(PROF.stash,b)&&addTo(PROF.inv,b))lost++;}}return lost;}
 function fuseMates(it){const r=it.r||0,o=[];for(const arr of [PROF.stash,PROF.inv])arr.forEach((x,i)=>{if(x&&x!==it&&x.id===it.id&&(x.r||0)===r)o.push([arr,i,x]);});return o;}
 function hubAction(a){
  const it=hubItem();if(!it)return;
  if(a==='qb'){qbToggle(it.id);if(hubSel.w==='s'&&!PROF.inv.some(x=>x&&x.id===it.id))toast('⚡ Na barra. Põe-no na mochila para o levares para o mundo');return;}
  if(a==='fuse'){const r=it.r||0,m=fuseMates(it).slice(0,2);if(r>=4||m.length<2||hubSel.w==='e')return;
-  const back=[];for(const [arr,i,x] of m){if(x.mods)for(const k in x.mods)back.push(x.mods[k]);if(x.mag&&IT[x.id].w)back.push({id:IT[x.id].w.a,q:x.mag});arr[i]=null;}
+  const back=[];for(const [arr,i,x] of m){if(x.mods)for(const k in x.mods){const md=x.mods[k];if(md&&IT[md.id])back.push({id:md.id,q:1,r:md.r||0});}if(x.mag&&IT[x.id].w)back.push({id:IT[x.id].w.a,q:x.mag});arr[i]=null;}
   const nw={id:it.id,q:1,r:r+1};if(it.mods)nw.mods=it.mods;if(it.mag)nw.mag=it.mag;if(IT[it.id].w)nw.dur=100;
   hubArr(hubSel.w)[hubSel.i]=nw;let lost=0;for(const b of back)if(addTo(PROF.stash,b)&&addTo(PROF.inv,b))lost++;
   sfx('build');sfx('rare');toast(`⬆️ ${IT[it.id].n} ${RARE[r+1]}!${back.length?' Os mods/balas das outras voltaram ao armazém.':''}${lost?' (alguns ficaram sem espaço)':''}`);return;}
  if(a!=='trash')hubTrash=false;
  if(a==='trash'){if(!hubTrash){hubTrash=true;return;}hubTrash=false;
   if(hubSel.w==='e'){if(hubSel.k==='mochila'){PROF.eq.mochila=null;if(!hubSetBag(null)){PROF.eq.mochila=it;return;}}else PROF.eq[hubSel.k]=null;}
-  else hubArr(hubSel.w)[hubSel.i]=null;hubSel=null;sfx('crate');return;}
+  else hubArr(hubSel.w)[hubSel.i]=null;if(it.mods&&Object.keys(it.mods).length){modsBack(it);toast('🔧 Os mods da arma voltaram ao armazém');}hubSel=null;sfx('crate');return;}
  if(hubSel.w==='e'){ // desequipar
   const k=hubSel.k,to=a==='toS'?PROF.stash:PROF.inv;
   if(k==='mochila'){if(to===PROF.inv){toast('Uma mochila não cabe dentro de si mesma');return;}PROF.eq.mochila=null;if(!hubSetBag(null)){PROF.eq.mochila=it;return;}}
@@ -2458,7 +2463,7 @@ $('hub').addEventListener('click',e=>{
  if(b.dataset.trr!=null){const r=+b.dataset.trr;trashToggleGroup(x=>rOf(x)===r);renderHub();return;}
  if(b.dataset.tclear){trashSel.clear();trashConf=false;renderHub();return;}
  if(b.dataset.tgo){if(!trashConf){trashConf=true;renderHub();return;}
-  let n=0;for(const k of trashSel){const [w,i]=k.split(':');const arr=w==='s'?PROF.stash:PROF.inv;if(arr[+i]){arr[+i]=null;n++;}}
+  let n=0;const keep=[];for(const k of trashSel){const [w,i]=k.split(':');const arr=w==='s'?PROF.stash:PROF.inv;if(arr[+i]){keep.push(arr[+i]);arr[+i]=null;n++;}}for(const x of keep)modsBack(x);
   trashSel.clear();trashConf=false;sfx('crack');toast(`🗑️ ${n} item(s) deitados fora`);renderHub();saveGame();return;}
  if(b.dataset.hclose){hubSel=null;modPick=null;repPick=false;hubTrash=false;renderHub();return;}
  if(b.dataset.h){hubAction(b.dataset.h);renderHub();saveGame();return;}
