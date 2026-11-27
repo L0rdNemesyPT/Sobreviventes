@@ -244,7 +244,8 @@ h1{font:800 clamp(30px,8vw,44px)/1.05 Inter,sans-serif;letter-spacing:-.03em;mar
   </div>
   <div id="saveInfo" style="margin-top:12px;font-size:13px;opacity:.75">A procurar jogo guardado…</div>
   <button class="big hide" id="cont">Continuar</button><br>
-  <button class="big" id="play">Novo jogo</button>
+  <button class="big" id="play">Novo jogo</button><br>
+  <button class="big" id="cloudR" style="background:#25406a;color:#fff;font-size:15px;min-height:46px">☁️ Recuperar da nuvem</button>
   <button class="big hide" id="instApp" style="background:#2f8f4a;color:#fff">📲 Instalar app</button>
   <div id="instTip" class="hide" style="margin-top:8px;font-size:12px;opacity:.75">No Chrome: menu ⋮ → <b>Instalar app</b> (ou "Adicionar ao ecrã principal")</div>
 </div></div>
@@ -256,6 +257,15 @@ h1{font:800 clamp(30px,8vw,44px)/1.05 Inter,sans-serif;letter-spacing:-.03em;mar
   <input id="nameI" maxlength="16" autocomplete="off" spellcheck="false" placeholder="Ex.: Nemesy" style="width:100%;min-height:50px;border-radius:12px;border:1px solid var(--ln);background:#0d0e10;color:#fff;font:700 18px Inter,sans-serif;padding:0 14px;text-align:center">
   <div id="nameE" style="font-size:12px;color:#ff9a8a;min-height:18px;margin:6px 0"></div>
   <button class="big" id="nameOk" style="width:100%">Confirmar</button>
+</div></div>
+<div id="cloudP" class="ov hide" style="z-index:45"><div class="panel" style="width:min(420px,100%)">
+  <div class="ph"><b id="cloudT">☁️ Cópia na nuvem</b><button class="xb" id="cloudX">✕</button></div>
+  <div id="cloudD" style="font-size:13px;opacity:.8;margin:4px 0 6px"></div>
+  <input id="cloudN" maxlength="16" autocomplete="off" spellcheck="false" placeholder="Nome do sobrevivente" style="width:100%;min-height:50px;border-radius:12px;border:1px solid var(--ln);background:#0d0e10;color:#fff;font:700 18px Inter,sans-serif;padding:0 14px;text-align:center;margin-top:8px">
+  <input id="cloudPin" type="password" inputmode="numeric" maxlength="8" autocomplete="off" placeholder="PIN (4 a 8 números)" style="width:100%;min-height:50px;border-radius:12px;border:1px solid var(--ln);background:#0d0e10;color:#fff;font:700 18px Inter,sans-serif;padding:0 14px;text-align:center;margin-top:8px">
+  <input id="cloudPin2" type="password" inputmode="numeric" maxlength="8" autocomplete="off" placeholder="Repete o PIN" style="width:100%;min-height:50px;border-radius:12px;border:1px solid var(--ln);background:#0d0e10;color:#fff;font:700 18px Inter,sans-serif;padding:0 14px;text-align:center;margin-top:8px">
+  <div id="cloudE" style="font-size:12px;color:#ff9a8a;min-height:18px;margin:6px 0"></div>
+  <button class="big" id="cloudOk" style="width:100%;margin-top:4px">Ativar</button>
 </div></div>
 <div id="optP" class="ov hide" style="z-index:30"><div class="panel" style="width:min(380px,100%)"><div class="ph"><b>⚙️ Opções</b><button class="xb" id="optX">✕</button></div><div id="optL"></div></div></div>
 <div id="mpP" class="ov hide" style="z-index:30"><div class="panel" style="width:min(440px,100%)"></div></div>
@@ -824,7 +834,41 @@ async function saveGame(manual){
  if(!lsSet(KEY,json)){try{localStorage.removeItem(KEY+'_bk');}catch(e){}if(!lsSet(KEY,json)){toast('⚠️ Sem espaço no telemóvel para guardar!');return;}}
  if(safe)lsSet(KEY+'_bk',json);
  if(DB&&UID&&!saving){saving=true;try{await DB.doc('data/users/'+UID+'/save').set({json,at:data.at});}catch(e){}saving=false;}
+ cloudPush(manual||(safe&&Date.now()-CLOUD.last>15000));
  if(manual)toast('💾 Jogo guardado');}
+// ---------- cópia na nuvem (Supabase): guardada pelo nome + PIN ----------
+const CLOUD={cfg:(()=>{try{return JSON.parse(localStorage.getItem('sv_cloud')||'null');}catch(e){return null;}})(),at:0,st:'',busy:0,last:0,mode:''};
+const CLOUDURL=(location.hostname==='localhost'&&location.hash==='#debug'?'http://localhost:8765/__cloud/':'https://jufptrlmwkietilgiexh.supabase.co/rest/v1/rpc/');
+async function cloudRpc(fn,body,keep){const r=await fetch(CLOUDURL+fn,{method:'POST',keepalive:!!keep,headers:{'Content-Type':'application/json',apikey:MPKEY,Authorization:'Bearer '+MPKEY},body:JSON.stringify(body)});if(!r.ok)throw new Error('http '+r.status);return r.json();}
+function cloudSet(c){CLOUD.cfg=c;try{if(c)localStorage.setItem('sv_cloud',JSON.stringify(c));else localStorage.removeItem('sv_cloud');}catch(e){}}
+async function cloudPush(force,keep){const c=CLOUD.cfg;if(!c||!bestSave||!bestSave.prof||!bestSave.prof.name||CLOUD.busy)return;
+ const now=Date.now();if(!force&&now-CLOUD.last<60000)return;CLOUD.busy=1;CLOUD.last=now;
+ try{const st=await cloudRpc('sv_put',{p_name:bestSave.prof.name,p_pin:c.pin,p_data:bestSave},keep);CLOUD.st=st;
+  if(st==='ok'){CLOUD.at=Date.now();c.at=CLOUD.at;cloudSet(c);}
+  else if(st==='taken'){toast('☁️ Esse nome já tem cópia na nuvem com outro PIN. Ativa de novo nas Opções.');cloudSet(null);}
+  else if(st==='locked')toast('☁️ Cópia bloqueada uns minutos (PIN errado várias vezes)');}
+ catch(e){CLOUD.st='net';}
+ CLOUD.busy=0;if(!$('optP').classList.contains('hide'))renderOpt();}
+function cloudAgo(t){if(!t)return'ainda não';const m=Math.round((Date.now()-t)/60000);return m<1?'agora mesmo':m<60?'há '+m+' min':m<1440?'há '+Math.round(m/60)+' h':'há '+Math.round(m/1440)+' dias';}
+function cloudOpen(mode){CLOUD.mode=mode;const R_=mode==='rec';$('cloudT').textContent=R_?'☁️ Recuperar da nuvem':'☁️ Ativar cópia na nuvem';
+ $('cloudD').innerHTML=R_?'Escreve o nome do sobrevivente e o PIN que escolheste quando ativaste a cópia.':'O teu jogo fica guardado na nuvem automaticamente. Se desinstalares ou trocares de telemóvel, recuperas tudo com o <b>nome</b> e este <b>PIN</b>. Guarda o PIN num sítio seguro.';
+ $('cloudN').value=R_?((()=>{try{return localStorage.getItem('sv_name')||'';}catch(e){return'';}})()):(PROF&&PROF.name||'');$('cloudN').disabled=!R_;$('cloudN').style.opacity=R_?1:.6;
+ $('cloudPin').value='';$('cloudPin2').value='';$('cloudPin2').style.display=R_?'none':'';$('cloudE').textContent='';$('cloudOk').textContent=R_?'Recuperar':'Ativar';$('cloudOk').disabled=false;$('cloudP').classList.remove('hide');}
+async function cloudConfirm(){const R_=CLOUD.mode==='rec',n=cleanName($('cloudN').value),pin=$('cloudPin').value.trim(),E=$('cloudE');
+ if(!n||n.length<2){E.textContent=R_?'Escreve o nome do sobrevivente.':'Primeiro escolhe um nome para o sobrevivente.';return;}
+ if(!/^[0-9]{4,8}$/.test(pin)){E.textContent='O PIN tem de ter 4 a 8 números.';return;}
+ if(!R_&&pin!==$('cloudPin2').value.trim()){E.textContent='Os dois PIN não são iguais.';return;}
+ $('cloudOk').disabled=true;E.textContent='';$('cloudOk').textContent='A ligar…';
+ try{if(R_){const r=await cloudRpc('sv_get',{p_name:n,p_pin:pin});
+   if(r.st==='none')E.textContent='Não há nenhuma cópia com esse nome.';else if(r.st==='pin')E.textContent='PIN errado.';else if(r.st==='locked')E.textContent='Demasiadas tentativas. Espera 15 minutos.';
+   else{const sv=normSave(r.data);if(!saveOk(sv)){E.textContent='A cópia está danificada.';}else{
+    const j=JSON.stringify(sv);if(!lsSet(KEY,j)){E.textContent='Sem espaço no telemóvel.';}else{lsSet(KEY+'_bk',j);try{localStorage.setItem('sv_name',sv.prof.name||n);}catch(e){}bestSave=sv;cloudSet({pin,at:Date.now()});CLOUD.at=Date.now();
+     $('cloudP').classList.add('hide');showStart(false);toast('☁️ Jogo recuperado! Carrega em Continuar.');sfx('ui');return;}}}}
+  else{if(!bestSave)await saveGame();const st=await cloudRpc('sv_put',{p_name:n,p_pin:pin,p_data:bestSave});
+   if(st==='ok'){cloudSet({pin,at:Date.now()});CLOUD.at=Date.now();CLOUD.st='ok';$('cloudP').classList.add('hide');toast('☁️ Cópia na nuvem ativada');sfx('ui');renderOpt();return;}
+   E.textContent=st==='taken'?'Esse nome já está a ser usado na nuvem com outro PIN. Usa o PIN certo ou muda o nome do sobrevivente.':st==='locked'?'Demasiadas tentativas. Espera 15 minutos.':st==='big'?'O jogo guardado é grande demais.':'Não foi possível ativar.';}}
+ catch(e){E.textContent='Sem ligação à internet. Tenta outra vez.';}
+ $('cloudOk').disabled=false;$('cloudOk').textContent=R_?'Recuperar':'Ativar';}
 function lsSet(k,v){try{localStorage.setItem(k,v);return localStorage.getItem(k)===v;}catch(e){return false;}}
 function saveOk(sv){return !!(sv&&sv.v===2&&sv.prof&&Array.isArray(sv.prof.stash)&&sv.prof.eq&&typeof sv.prof.eq==='object'&&(!sv.raid||(sv.raid.P&&Array.isArray(sv.raid.inv)&&Array.isArray(sv.raid.diff))));}
 async function deleteSave(){
@@ -1988,7 +2032,8 @@ function renderOpt(){const el=$('optL');if(!el)return;try{joy;}catch(e){return;}
  const row=(k,ic,n,d,on)=>`<div style="display:flex;align-items:center;gap:12px;padding:12px 4px;border-bottom:1px solid rgba(255,255,255,.08)"><span style="font-size:26px">${ic}</span><div style="flex:1"><b>${n}</b><div style="font-size:12px;opacity:.7">${d}</div></div><button data-opt="${k}" style="min-width:96px;min-height:40px;border:0;border-radius:12px;color:#fff;font:700 14px Inter,sans-serif;background:${on?'#3d7a3a':'#6a3434'}">${on?'Ligado':'Desligado'}</button></div>`;
  el.innerHTML=row('som',AU.on?'🔊':'🔇','Som do jogo','Música, tiros, zombies e efeitos.',AU.on)+
   `<div style="display:flex;align-items:center;gap:12px;padding:12px 4px;border-bottom:1px solid rgba(255,255,255,.08)"><span style="font-size:26px">🖼️</span><div style="flex:1"><b>Gráficos</b><div style="font-size:12px;opacity:.7">${GFX.mode==='auto'?'Ajusta a resolução sozinho para o jogo fluir.':GFX.mode==='alta'?'Máxima nitidez (pode pesar em telemóveis fracos).':'Poupa bateria e evita quebras.'}</div></div><button data-opt="gfx" style="min-width:96px;min-height:40px;border:0;border-radius:12px;color:#fff;font:700 14px Inter,sans-serif;background:#3a5a7a">${GFX.mode==='auto'?'Automático':GFX.mode==='alta'?'Alta':'Poupança'}</button></div>`+
-  row('joy','🕹️','Joystick','Se o desligares, tocas no ecrã para andar até lá.'+(joy.ok?'':' (só em ecrãs tácteis)'),joy.en);}
+  row('joy','🕹️','Joystick','Se o desligares, tocas no ecrã para andar até lá.'+(joy.ok?'':' (só em ecrãs tácteis)'),joy.en)+
+  `<div style="display:flex;align-items:center;gap:12px;padding:12px 4px"><span style="font-size:26px">☁️</span><div style="flex:1"><b>Cópia na nuvem</b><div style="font-size:12px;opacity:.7">${CLOUD.cfg?(CLOUD.st==='net'?'Sem internet: tenta de novo mais tarde.':'Ligada · última cópia '+cloudAgo(CLOUD.cfg.at)):'Desligada: se desinstalares o jogo perdes o save.'}</div></div><button data-opt="cloud" style="min-width:96px;min-height:40px;border:0;border-radius:12px;color:#fff;font:700 14px Inter,sans-serif;background:${CLOUD.cfg?'#3a5a7a':'#2f8f4a'}">${CLOUD.cfg?'Copiar já':'Ativar'}</button></div>`;}
 
 // ---------- efeitos ----------
 let decals=[],corpses=[],rings=[],lights=[],nades=[],chain=[],flashA=0,stepT=0,heartT=0,lastPhase=-1,cricketT=3;
@@ -2508,7 +2553,8 @@ function hubSetBag(bag){ // ajusta a mochila do perfil; o que não couber vai pa
 function hubQn(it){return Math.max(1,Math.min(it.q||1,hubSel&&hubSel.n?hubSel.n:it.q||1));}
 function hubArr(w){return w==='s'?PROF.stash:PROF.inv;}
 function hubItem(){if(!hubSel)return null;return hubSel.w==='e'?PROF.eq[hubSel.k]:hubArr(hubSel.w)[hubSel.i];}
-function enterHub(){hubTab='bag';hubSel=null;
+function enterHub(){
+ if(!CLOUD.cfg&&PROF&&PROF.name){let n=0;try{n=+localStorage.getItem('sv_cloud_tip')||0;localStorage.setItem('sv_cloud_tip',n+1);}catch(e){}if(n<3)setTimeout(()=>{if(!CLOUD.cfg)toast('☁️ Ativa a cópia na nuvem nas Opções ⚙️ para nunca perderes o jogo');},4500);}hubTab='bag';hubSel=null;
  P=null;state='hub';$('hub').scrollTop=0;hubSel=null;hubTrash=false;trashMode=false;trashSel.clear();$('exBox').classList.add('hide');
  for(const id of['over','extr','start','inv','fullmap'])$(id).classList.add('hide');
  $('hub').classList.remove('hide');renderHub();hortaHarvest();saveGame();}
@@ -2773,7 +2819,11 @@ $('bMap').onclick=openMap;$('bSnd').onclick=()=>{audioInit();renderOpt();$('optP
 $('optP').onclick=e=>{if(e.target.id==='optP'){$('optP').classList.add('hide');return;}const b=e.target.closest('[data-opt]');if(!b)return;
  if(b.dataset.opt==='som'){audioInit();setSound(!AU.on);}
  else if(b.dataset.opt==='gfx'){GFX.mode=GFX.mode==='auto'?'alta':GFX.mode==='alta'?'baixa':'auto';GFX.q=1;try{localStorage.setItem('sobrev_gfx',GFX.mode);}catch(e){}resize();renderOpt();}
- else if(b.dataset.opt==='joy'){joy.en=!joy.en;try{localStorage.setItem('sobrev_joy',joy.en?'1':'0');}catch(e){}joy.x=joy.y=0;joy.id=null;renderOpt();}};$('bNade').onclick=throwNade;setSound(AU.on);$('bSave').onclick=()=>saveGame(true);
+ else if(b.dataset.opt==='cloud'){if(!CLOUD.cfg){if(!PROF||!PROF.name){toast('Primeiro escolhe um nome');return;}cloudOpen('on');}else{saveGame();cloudPush(true);toast('☁️ A copiar…');}}
+ else if(b.dataset.opt==='joy'){joy.en=!joy.en;try{localStorage.setItem('sobrev_joy',joy.en?'1':'0');}catch(e){}joy.x=joy.y=0;joy.id=null;renderOpt();}};$('bNade').onclick=throwNade;$('cloudX').onclick=()=>$('cloudP').classList.add('hide');$('cloudOk').onclick=cloudConfirm;$('cloudR').onclick=()=>{audioInit();cloudOpen('rec');};
+['cloudPin','cloudPin2'].forEach(k=>$(k).addEventListener('keydown',e=>{if(e.key==='Enter')cloudConfirm();}));
+if(document.addEventListener)document.addEventListener('visibilitychange',()=>{if(document.hidden&&CLOUD.cfg&&bestSave)cloudPush(true,true);});
+setSound(AU.on);$('bSave').onclick=()=>saveGame(true);
 function goFull(){try{document.documentElement.requestFullscreen&&document.documentElement.requestFullscreen().catch(()=>{});}catch(e){}}
 $('cont').onclick=()=>{if(!bestSave)return;audioInit();goFull();$('start').classList.add('hide');PROF=cleanProf(bestSave.prof);
  if(bestSave.raid){try{newGame(bestSave.raid);}catch(e){console.error(e);
