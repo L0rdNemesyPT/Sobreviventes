@@ -133,6 +133,8 @@ canvas#g{position:fixed;inset:0;width:100%;height:100%;display:block}
 .ms{min-height:52px;border-radius:12px;border:1px solid var(--ln);background:var(--cell);font-size:18px;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:2px}
 .ms span{font-size:9px;color:var(--mut);line-height:1.1;text-align:center}
 .ms.on{outline:2px solid #fff}
+.uic{display:inline-block;width:1.2em;height:1.2em;vertical-align:-.25em;background:url(ui-47d4980e.webp) no-repeat;background-size:1200% 600%;filter:drop-shadow(0 0 1px rgba(255,255,255,.55))}
+.rdot{display:inline-block;width:.7em;height:.7em;border-radius:50%;vertical-align:-.02em;box-shadow:0 0 0 1px rgba(0,0,0,.45)}
 .qrow{display:flex;align-items:center;gap:8px;margin-top:8px;font-size:13px}.qrow input{flex:1;accent-color:#7fd07f}.qrow b{min-width:28px;text-align:right}.qrow .mini{min-height:36px;min-width:40px}.qq .mini{flex:1}
 .mp{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}.mp button{min-height:38px}
 .tro{display:flex;align-items:center;gap:10px;background:var(--cell);border:1px solid var(--ln);border-radius:14px;padding:10px;margin-top:8px}.tro .gv{flex:1;font-size:13px;line-height:1.5}
@@ -297,7 +299,7 @@ h1{font:800 clamp(30px,8vw,44px)/1.05 Inter,sans-serif;letter-spacing:-.03em;mar
    <div id="hKits"></div>
    <div class="hint2">Carrega num item e arrasta para o arrumar onde quiseres · toque duplo passa-o entre a mochila e o armazém</div>
    <div class="sec"><span>Armazém <span id="hStN" style="opacity:.7"></span></span><span style="display:flex;gap:6px"><button class="mini" id="hArm">⬆️ Ampliar</button><button class="mini" id="hTrash">🗑️ Lixo</button><button class="mini" id="hFuse">⬆️ Fundir</button><button class="mini" id="hSort">Arrumar</button></span></div>
-   <input id="hQ" class="srch" placeholder="🔍 Procurar no armazém" autocomplete="off" spellcheck="false">
+   <input id="hQ" class="srch" placeholder="Procurar no armazém" autocomplete="off" spellcheck="false">
    <div class="tabs" id="tabH"></div>
    <div id="hSt" class="gr"></div>
   </div>
@@ -915,6 +917,34 @@ async function initSave(){
 }
 addEventListener('visibilitychange',()=>{if(document.hidden&&state!=='start')saveGame();});
 addEventListener('pagehide',()=>{if(state!=='start')saveGame();});
+// ---------- ícones da interface: troca os emojis por imagens do jogo (no ecrã e nos textos desenhados) ----------
+const UIU='ui-47d4980e.webp',UIP='ui-47d4980e.png',UIM={"🎒": 0, "🔨": 1, "⇄": 2, "♻": 2, "↻": 2, "🗺": 3, "💾": 4, "⚙": 5, "💣": 6, "💥": 6, "👥": 7, "👋": 7, "👤": 8, "🧍": 8, "🧔": 8, "🔍": 9, "🗑": 10, "⬆": 11, "☁": 12, "🔊": 13, "🔇": 14, "🕹": 15, "🖼": 16, "✏": 17, "📲": 18, "✔": 20, "⚠": 21, "😱": 21, "❌": 21, "📍": 22, "🏙": 22, "🏘": 22, "💬": 23, "🪵": 24, "🪨": 25, "🪙": 26, "💰": 26, "💀": 27, "☠": 28, "🚁": 29, "✈": 29, "☀": 30, "🌙": 31, "🛏": 31, "❤": 32, "💚": 32, "🛡": 33, "🚓": 33, "🥾": 34, "👟": 34, "🦵": 34, "🎧": 35, "🍖": 36, "🍗": 36, "🥩": 36, "💧": 37, "🥤": 37, "🧃": 37, "⚡": 38, "🔋": 38, "🔥": 39, "⛽": 39, "🌱": 40, "🌿": 40, "📻": 41, "📡": 41, "📶": 41, "📦": 42, "🛒": 42, "🔧": 43, "🎖": 44, "🎗": 44, "🎯": 45, "🐗": 45, "🏆": 46, "💎": 46, "🎁": 47, "⚔": 48, "🔪": 48, "🗡": 48, "🏏": 48, "✊": 48, "🔫": 49, "🔸": 50, "🥁": 50, "🔺": 50, "🟤": 50, "🔶": 50, "🟫": 50, "🍲": 51, "🍯": 51, "🍎": 51, "🫐": 51, "🍪": 51, "🥫": 51, "🍞": 51, "🥪": 51, "🍱": 51, "🫙": 51, "🍽": 51, "🩹": 52, "🧻": 52, "💉": 52, "🏥": 52, "💊": 53, "🪖": 54, "⛑": 54, "🧢": 54, "🦺": 55, "🧥": 55, "👕": 55, "🔭": 56, "📏": 56, "🔴": 56, "🧱": 57, "🛠": 58, "🪚": 58, "🪓": 58, "🔩": 58, "🧤": 58, "🧰": 58, "➰": 58, "⛏": 58, "🏹": 59, "🆘": 60, "🎈": 61, "🚗": 61, "☢": 62, "☣": 63, "🧪": 63, "😷": 63, "🤢": 63, "❄": 64, "🌨": 64, "🧊": 64, "🌧": 65, "⛈": 66, "🌫": 67, "🌪": 68, "🏜": 68, "🧟": 69, "🤝": 70, "🙏": 70, "🚪": 71, "🏚": 71},UIDOT={'⚪':'#d0d0d0','🟢':'#4fd04f','🔵':'#3d8bff','🟣':'#b05cff','🟡':'#ffc531'};
+const UIRE=new RegExp('('+Object.keys(UIM).concat(Object.keys(UIDOT)).sort((a,b)=>b.length-a.length).map(k=>k.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')).join('|')+')\uFE0F?','gu');
+const UIIMG={img:null,ok:false};
+(function(){if(typeof Image==='undefined')return;const im=new Image();im.onload=()=>{UIIMG.ok=true;};im.onerror=()=>{if(!im.src.endsWith('.png'))im.src=UIP;};UIIMG.img=im;im.src=UIU;})();
+function uiKey(m){return m.replace(/\uFE0F/g,'');}
+function uiSpan(k){const d=document.createElement('i');const c=UIDOT[k];
+ if(c){d.className='rdot';d.style.background=c;return d;}
+ const n=UIM[k];d.className='uic';d.style.backgroundPosition=`${(n%12)/11*100}% ${((n/12)|0)/5*100}%`;return d;}
+const UISKIP={SCRIPT:1,STYLE:1,TEXTAREA:1,INPUT:1,OPTION:1,TITLE:1};
+function uiText(t){const v=t.nodeValue;if(!v||!t.parentNode||UISKIP[t.parentNode.nodeName])return;UIRE.lastIndex=0;if(!UIRE.test(v))return;UIRE.lastIndex=0;
+ const f=document.createDocumentFragment();let last=0,m;while((m=UIRE.exec(v))){if(m.index>last)f.appendChild(document.createTextNode(v.slice(last,m.index)));f.appendChild(uiSpan(uiKey(m[1])));last=m.index+m[0].length;}
+ if(last<v.length)f.appendChild(document.createTextNode(v.slice(last)));t.parentNode.replaceChild(f,t);}
+function uiIconize(root){if(!root)return;if(root.nodeType===3){uiText(root);return;}if(root.nodeType!==1||UISKIP[root.nodeName])return;
+ const w=document.createTreeWalker(root,4),L=[];let n;while((n=w.nextNode()))L.push(n);for(const t of L)uiText(t);}
+if(typeof MutationObserver!=='undefined'&&typeof document!=='undefined'&&document.body){uiIconize(document.body);
+ new MutationObserver(ms=>{for(const m of ms){if(m.type==='characterData')uiText(m.target);else for(const a of m.addedNodes)uiIconize(a);}}).observe(document.body,{childList:true,subtree:true,characterData:true});}
+// textos desenhados no canvas: os emojis viram os mesmos ícones
+if(typeof CanvasRenderingContext2D!=='undefined'){const _ft=CanvasRenderingContext2D.prototype.fillText;
+ CanvasRenderingContext2D.prototype.fillText=function(t,x,y,mw){if(typeof t!=='string'||!UIIMG.ok){return _ft.call(this,t,x,y,mw);}UIRE.lastIndex=0;if(!UIRE.test(t))return _ft.call(this,t,x,y,mw);
+  UIRE.lastIndex=0;const fs=+((/(\d+(?:\.\d+)?)px/.exec(this.font)||[0,12])[1]),is=fs*1.15,parts=[];let last=0,m;
+  while((m=UIRE.exec(t))){if(m.index>last)parts.push(t.slice(last,m.index));parts.push({k:uiKey(m[1])});last=m.index+m[0].length;}if(last<t.length)parts.push(t.slice(last));
+  let tw=0;for(const p of parts)tw+=typeof p==='string'?this.measureText(p).width:is;
+  const al=this.textAlign;let sx=al==='center'?x-tw/2:(al==='right'||al==='end')?x-tw:x;const sh=/^(#000|#000000|black|rgba\(0, ?0, ?0)/.test(String(this.fillStyle));
+  this.textAlign='left';for(const p of parts){if(typeof p==='string'){_ft.call(this,p,sx,y);sx+=this.measureText(p).width;}
+   else{if(!sh){const c=UIDOT[p.k];if(c){const o=this.fillStyle;this.fillStyle=c;this.beginPath();this.arc(sx+is/2,y-fs*.35,is*.32,0,7);this.fill();this.fillStyle=o;}
+     else{const n=UIM[p.k];this.drawImage(UIIMG.img,(n%12)*64,((n/12)|0)*64,64,64,sx,y-fs*.95,is,is);}}sx+=is;}}
+  this.textAlign=al;};}
 function toast(t){const e=$('toast');e.classList.toggle('low',state==='inv'||state==='trade'||state==='map'||state==='bau');e.textContent=t;e.style.opacity=1;clearTimeout(toast.h);toast.h=setTimeout(()=>e.style.opacity=0,1600);}
 function ftext(x,y,t,c){texts.push({x,y,t,c,l:1});}
 
