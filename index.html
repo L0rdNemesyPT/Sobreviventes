@@ -267,7 +267,8 @@ h1{font:800 clamp(30px,8vw,44px)/1.05 Inter,sans-serif;letter-spacing:-.03em;mar
   <div id="cloudE" style="font-size:12px;color:#ff9a8a;min-height:18px;margin:6px 0"></div>
   <button class="big" id="cloudOk" style="width:100%;margin-top:4px">Ativar</button>
 </div></div>
-<div id="optP" class="ov hide" style="z-index:30"><div class="panel" style="width:min(380px,100%)"><div class="ph"><b>⚙️ Opções</b><button class="xb" id="optX">✕</button></div><div id="optL"></div></div></div>
+<div id="fuseP" class="ov hide" style="z-index:44"><div class="panel" style="width:min(440px,100%);max-height:86vh;display:flex;flex-direction:column"><div class="ph"><b>⬆️ Fundir tudo</b><button class="xb" id="fuseX">✕</button></div><div id="fuseL" style="overflow:auto;flex:1"></div><div id="fuseB" style="display:flex;gap:8px;margin-top:10px"></div></div></div>
+<div id="optP" class="ov hide" style="z-index:42"><div class="panel" style="width:min(380px,100%)"><div class="ph"><b>⚙️ Opções</b><button class="xb" id="optX">✕</button></div><div id="optL"></div></div></div>
 <div id="mpP" class="ov hide" style="z-index:30"><div class="panel" style="width:min(440px,100%)"></div></div>
 <div id="over" class="ov hide"><div class="panel">
   <h1>Morreste</h1>
@@ -284,7 +285,7 @@ h1{font:800 clamp(30px,8vw,44px)/1.05 Inter,sans-serif;letter-spacing:-.03em;mar
 <div id="hub" class="ov hide">
  <div id="hRoom"></div>
  <div class="hubw">
-  <div class="ph"><b>🏚️ Esconderijo</b><span style="display:flex;gap:6px"><button class="sbtn" id="mpB">👥 Amigos</button><button class="sbtn" id="hName">👤 <span id="hNameT"></span> ✏️</button></span></div>
+  <div class="ph"><b>🏚️ Esconderijo</b><span style="display:flex;gap:6px"><button class="sbtn" id="mpB">👥 Amigos</button><button class="sbtn" id="hOpt" aria-label="Opções">⚙️</button><button class="sbtn" id="hName">👤 <span id="hNameT"></span> ✏️</button></span></div>
   <div id="hStats" style="font-size:12px;opacity:.75;margin-top:-6px"></div>
   <div class="htabs" id="hTabs"><button data-ht="bag">🎒 Personagem e inventário</button><button data-ht="base">🔧 Bancada</button></div>
   <div class="tp tp-bag">
@@ -295,7 +296,7 @@ h1{font:800 clamp(30px,8vw,44px)/1.05 Inter,sans-serif;letter-spacing:-.03em;mar
    <div class="qbrow" id="qbH"></div>
    <div id="hKits"></div>
    <div class="hint2">Carrega num item e arrasta para o arrumar onde quiseres · toque duplo passa-o entre a mochila e o armazém</div>
-   <div class="sec"><span>Armazém <span id="hStN" style="opacity:.7"></span></span><span style="display:flex;gap:6px"><button class="mini" id="hArm">⬆️ Ampliar</button><button class="mini" id="hTrash">🗑️ Lixo</button><button class="mini" id="hSort">Arrumar</button></span></div>
+   <div class="sec"><span>Armazém <span id="hStN" style="opacity:.7"></span></span><span style="display:flex;gap:6px"><button class="mini" id="hArm">⬆️ Ampliar</button><button class="mini" id="hTrash">🗑️ Lixo</button><button class="mini" id="hFuse">⬆️ Fundir</button><button class="mini" id="hSort">Arrumar</button></span></div>
    <input id="hQ" class="srch" placeholder="🔍 Procurar no armazém" autocomplete="off" spellcheck="false">
    <div class="tabs" id="tabH"></div>
    <div id="hSt" class="gr"></div>
@@ -765,8 +766,12 @@ function tickReload(dt){const it=curWeaponItem();
  const w=it&&durOf(it)>0&&wOf(it);if(w&&w.t==='g'&&!P.target&&(it.mag||0)<magCap(it)*.5&&ammo(w.a)>0&&time-(P.lastShot||0)>2.5)startReload(it,w);}
 function ammo(t,arr){let n=0;for(const s of arr||inv)if(s&&s.id===t)n+=s.q;return n;}
 function useAmmo(t){for(let i=inv.length-1;i>=0;i--){const s=inv[i];if(s&&s.id===t){s.q--;if(!s.q)inv[i]=null;return true;}}return false;}
-function curWeapon(){const it=P.eq[P.act===1?'arma1':'arma2'];return it&&durOf(it)>0?wOf(it):FISTS;}
-function curWeaponItem(){return P.eq[P.act===1?'arma1':'arma2'];}
+// P.fist: sem balas e sem outra arma → luta aos murros até haver balas para esta arma (ou trocares)
+function curWeapon(){const it=P.eq[P.act===1?'arma1':'arma2'];if(it&&P.fist===it)return FISTS;return it&&durOf(it)>0?wOf(it):FISTS;}
+function curWeaponItem(){const it=P.eq[P.act===1?'arma1':'arma2'];return it&&P.fist===it?null:it;}
+function noAmmoSwitch(it0){const o=P.act===1?2:1,ot=P.eq[o===1?'arma1':'arma2'];
+ if(ot&&durOf(ot)>0){const ow=wOf(ot);if(ow.t==='m'||(ot.mag>0||ammo(ow.a)>0)){P.act=o;P.fist=null;P.cd=Math.max(P.cd,250);sfx('equip');toast('Sem '+IT[IT[it0.id].w.a].n+'! Trocaste para: '+IT[ot.id].n);return;}}
+ P.fist=it0;P.cd=Math.max(P.cd,250);sfx('empty');toast('Sem '+IT[IT[it0.id].w.a].n+'! A lutar aos murros');}
 function autoEquip(it){const d=IT[it.id];
  if(d.s==='mochila'&&!P.eq.mochila){P.eq.mochila=it;fitInv(invCap());return true;}
  if(['capacete','armadura','botas','fones'].includes(d.s)&&!P.eq[d.s]){P.eq[d.s]=it;return true;}
@@ -2148,10 +2153,11 @@ function hurtP(d,S){if(P.down){P.downT-=1.5;return;}if(P.reviveT>0)return;if(P.m
 function hurtFlash(){const e=state==='inv'?$('inv'):state==='bau'?$('bauP'):null;if(!e||!e.classList)return;e.classList.remove('hurt');void e.offsetWidth;e.classList.add('hurt');clearTimeout(hurtFlash.t);hurtFlash.t=setTimeout(()=>e.classList.remove('hurt'),500);}
 
 function attack(S){
+ if(P.fist){const it=P.eq[P.act===1?'arma1':'arma2'];if(it!==P.fist)P.fist=null;else{const w0=wOf(it);if(w0&&w0.t==='g'&&(it.mag>0||ammo(w0.a)>0))P.fist=null;}}
  const w=curWeapon();
  if(w.t==='g'){
   const it0=curWeaponItem();if(P.rl>0)return;
-  if(!(it0.mag>0)){if(!startReload(it0,w)){toast('Sem '+IT[w.a].n+'!');sfx('empty');P.cd=500;}return;}
+  if(!(it0.mag>0)){if(!startReload(it0,w))noAmmoSwitch(it0);return;}
   it0.mag--;P.lastShot=time;
   P.cd=w.rate;P.flash=.06;P.aimT=.7;shake=Math.min(12,shake+(w.pel?5:w.dmg>=45?4.5:w.dmg>=30?2:1));{const it=curWeaponItem(),cn=it.mods&&it.mods.cano&&it.mods.cano.id;sfx(w.bow?'bow':cn==='silenc'?'silenced':cn==='supress'?'silencedR':it.id);}wear(curWeaponItem());
   const mxp=P.x+Math.cos(P.ang)*32,myp=P.y+Math.sin(P.ang)*32;light(mxp,myp,180,.07,'255,220,140');
@@ -2621,6 +2627,34 @@ function modMates(id,r,skipIt,skipW,skipK){const o=[];
 function modTake(e){if(e.a)e.a[e.i]=null;else delete e.w.mods[e.k];}
 function modWName(w){return IT[w.id].n;}
 function fuseMates(it){if(IT[it.id].s==='mod')return modMates(it.id,it.r||0,it);const r=it.r||0,o=[];for(const arr of [PROF.stash,PROF.inv])arr.forEach((x,i)=>{if(x&&x!==it&&x.id===it.id&&(x.r||0)===r)o.push([arr,i,x]);});return o;}
+// ---------- fundir tudo: junta automaticamente 3 iguais (mesmo item e raridade) e sobe em cadeia ----------
+// não mexe no que está equipado nem em armas com mods montados (para não estragar montagens)
+function fusePlan(){const G={},steps={};
+ for(const arr of [PROF.stash,PROF.inv])arr.forEach((x,i)=>{if(!x||!IT[x.id]||!isGear(x.id)||(x.r||0)>=4)return;if(x.mods&&Object.values(x.mods).some(Boolean))return;const k=x.id+'|'+(x.r||0);(G[k]=G[k]||[]).push([arr,i,x]);});
+ const cnt={};for(const k in G)cnt[k]=G[k].length;
+ for(let r=0;r<4;r++)for(const k of Object.keys(cnt)){const [id,rs]=k.split('|');if(+rs!==r)continue;const n=Math.floor(cnt[k]/3);if(!n)continue;
+  cnt[k]-=n*3;const up=id+'|'+(r+1);cnt[up]=(cnt[up]||0)+n;steps[k]=(steps[k]||0)+n;}
+ return{G,steps,cnt};}
+function fuseOpen(){const pl=fusePlan(),ks=Object.keys(pl.steps);
+ const L=$('fuseL'),B=$('fuseB');
+ if(!ks.length){L.innerHTML='<div style="opacity:.8;padding:14px 4px;line-height:1.5">Não há nada para fundir: precisas de <b>3 itens iguais</b> (mesmo item e mesma raridade) no armazém ou na mochila.<br><span style="font-size:12px;opacity:.75">O que está equipado e as armas com mods montados ficam de fora.</span></div>';B.innerHTML='<button class="big" id="fuseNo" style="flex:1;margin:0">Fechar</button>';}
+ else{ks.sort((a,b)=>{const [ia,ra]=a.split('|'),[ib,rb]=b.split('|');return (+ra)-(+rb)||IT[ia].n.localeCompare(IT[ib].n);});
+  let tot=0;L.innerHTML='<div style="font-size:13px;opacity:.75;margin:2px 0 8px">Cada 3 iguais dão 1 da raridade seguinte (e sobe em cadeia). O que está equipado e as armas com mods ficam de fora.</div>'+ks.map(k=>{const [id,r]=k.split('|'),n=pl.steps[k];tot+=n;
+   return`<div style="display:flex;align-items:center;gap:10px;padding:7px 4px;border-bottom:1px solid rgba(255,255,255,.07)"><span class="ie" style="width:34px;height:34px;display:flex;align-items:center;justify-content:center">${ie(id)}</span><div style="flex:1;font-size:13px"><b>${IT[id].n}</b><div style="opacity:.85">${n*3}× <span style="color:${RAR[+r]}">${RARN[+r]}</span> → ${n}× <span style="color:${RAR[+r+1]};font-weight:700">${RARN[+r+1]}</span></div></div></div>`;}).join('');
+  B.innerHTML=`<button class="big" id="fuseNo" style="flex:1;margin:0;background:#2a2d33;color:#fff">Cancelar</button><button class="big" id="fuseGo" style="flex:1.4;margin:0">⬆️ Fundir tudo</button>`;}
+ $('fuseP').classList.remove('hide');}
+function fuseAll(){const pl=fusePlan();let made=0,back=[];const out=[];
+ // tira os itens que vão ser usados (mantém os que sobram) e cria os novos
+ const keepN={};for(const k in pl.G){const have=pl.G[k].length;const [id,r]=k.split('|');keepN[k]=0;}
+ const fin=pl.cnt;// contagem final por id|raridade
+ for(const k in pl.G){const [id,r]=k.split('|');const fn=fin[k]||0;const lst=pl.G[k];
+  // os que ficam: os primeiros "fn" (os outros são consumidos)
+  lst.slice(fn).forEach(([arr,i,x])=>{if(x.mag&&IT[x.id].w)back.push({id:IT[x.id].w.a,q:x.mag});arr[i]=null;});}
+ for(const k in fin){const [id,r]=k.split('|');const have=(pl.G[k]||[]).length,extra=Math.max(0,fin[k]-have);
+  for(let j=0;j<extra;j++){const nw={id,q:1,r:+r};if(IT[id].w)nw.dur=100;out.push(nw);made++;}}
+ let lost=0;for(const it of out.concat(back))if(addTo(PROF.stash,it)&&addTo(PROF.inv,it))lost++;
+ hubSel=null;$('fuseP').classList.add('hide');sfx('build');sfx('rare');
+ toast(`⬆️ ${made} ${made===1?'item melhorado':'itens melhorados'}!${lost?' (alguns ficaram sem espaço)':''}`);renderHub();saveGame();}
 function hubAction(a){
  const it=hubItem();if(!it)return;
  if(a==='qb'){qbToggle(it.id);if(hubSel.w==='s'&&!PROF.inv.some(x=>x&&x.id===it.id))toast('⚡ Na barra. Põe-no na mochila para o levares para o mundo');return;}
@@ -2701,6 +2735,8 @@ $('hub').addEventListener('click',e=>{
   toast(n?`${n} item(s) guardados`:'Nada para guardar');hubSel=null;renderHub();saveGame();}
  else if(b.id==='hArm'){openBase('arm');}
  else if(b.id==='hISort'){sortBag(PROF.inv);hubSel=null;toast('Mochila arrumada');renderHub();saveGame();}
+ else if(b.id==='hFuse'){fuseOpen();}
+ else if(b.id==='hOpt'){audioInit();renderOpt();$('optP').classList.remove('hide');}
  else if(b.id==='hSort'){sortStash();hubSel=null;toast('Armazém arrumado');renderHub();saveGame();}
  else if(b.id==='hKit'){
   const all=[...Object.values(PROF.eq),...PROF.inv,...PROF.stash].filter(Boolean);
@@ -2813,14 +2849,14 @@ cv.addEventListener('touchstart',e=>{e.preventDefault();mouse.active=false;audio
 cv.addEventListener('touchmove',e=>{e.preventDefault();for(const t of e.changedTouches)if(t.identifier===touchId)pressMove(t.clientX,t.clientY);},{passive:false});
 const tend=e=>{for(const t of e.changedTouches)if(t.identifier===touchId){touchId=null;if(e.type==='touchend')pressEnd(t.clientX,t.clientY);else press=null;}};
 cv.addEventListener('touchend',tend);cv.addEventListener('touchcancel',tend);
-function swap(){if(state!=='play')return;sfx('equip');P.act=P.act===1?2:1;P.cd=Math.max(P.cd,200);const it=curWeaponItem();toast('Arma: '+(it?IT[it.id].n:'Punhos'));}
+function swap(){if(state!=='play')return;sfx('equip');P.act=P.act===1?2:1;P.fist=null;P.cd=Math.max(P.cd,200);const it=curWeaponItem();toast('Arma: '+(it?IT[it.id].n:'Punhos'));}
 $('bSwap').onclick=swap;$('bInv').onclick=openInv;$('bBuild').onclick=()=>toggleBuild(!buildSel);$('weap').onclick=swap;
 $('bMap').onclick=openMap;$('bSnd').onclick=()=>{audioInit();renderOpt();$('optP').classList.remove('hide');};$('optX').onclick=()=>$('optP').classList.add('hide');
 $('optP').onclick=e=>{if(e.target.id==='optP'){$('optP').classList.add('hide');return;}const b=e.target.closest('[data-opt]');if(!b)return;
  if(b.dataset.opt==='som'){audioInit();setSound(!AU.on);}
  else if(b.dataset.opt==='gfx'){GFX.mode=GFX.mode==='auto'?'alta':GFX.mode==='alta'?'baixa':'auto';GFX.q=1;try{localStorage.setItem('sobrev_gfx',GFX.mode);}catch(e){}resize();renderOpt();}
  else if(b.dataset.opt==='cloud'){if(!CLOUD.cfg){if(!PROF||!PROF.name){toast('Primeiro escolhe um nome');return;}cloudOpen('on');}else{saveGame();cloudPush(true);toast('☁️ A copiar…');}}
- else if(b.dataset.opt==='joy'){joy.en=!joy.en;try{localStorage.setItem('sobrev_joy',joy.en?'1':'0');}catch(e){}joy.x=joy.y=0;joy.id=null;renderOpt();}};$('bNade').onclick=throwNade;$('cloudX').onclick=()=>$('cloudP').classList.add('hide');$('cloudOk').onclick=cloudConfirm;$('cloudR').onclick=()=>{audioInit();cloudOpen('rec');};
+ else if(b.dataset.opt==='joy'){joy.en=!joy.en;try{localStorage.setItem('sobrev_joy',joy.en?'1':'0');}catch(e){}joy.x=joy.y=0;joy.id=null;renderOpt();}};$('bNade').onclick=throwNade;$('fuseX').onclick=()=>$('fuseP').classList.add('hide');$('fuseP').onclick=e=>{if(e.target.id==='fuseP'||e.target.id==='fuseNo')$('fuseP').classList.add('hide');else if(e.target.id==='fuseGo')fuseAll();};$('cloudX').onclick=()=>$('cloudP').classList.add('hide');$('cloudOk').onclick=cloudConfirm;$('cloudR').onclick=()=>{audioInit();cloudOpen('rec');};
 ['cloudPin','cloudPin2'].forEach(k=>$(k).addEventListener('keydown',e=>{if(e.key==='Enter')cloudConfirm();}));
 if(document.addEventListener)document.addEventListener('visibilitychange',()=>{if(document.hidden&&CLOUD.cfg&&bestSave)cloudPush(true,true);});
 setSound(AU.on);$('bSave').onclick=()=>saveGame(true);
