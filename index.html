@@ -2588,9 +2588,14 @@ function hubAction(a){
   hubSel={w:'e',k};sfx('equip');}
 }
 const ORD={coin:-1,arma:0,capacete:1,armadura:2,fones:3,mochila:4,mod:5,use:6,rep:7,place:8,ammo:9};
-function sortList(arr,n){const list=arr.filter(Boolean),st=new Array(n).fill(null);
- const CO=Object.fromEntries(ICAT.map(([k],i)=>[k,i]));list.sort((a,b)=>CO[catOf(a.id)]-CO[catOf(b.id)]||ORD[IT[a.id].s]-ORD[IT[b.id].s]||rOf(b)-rOf(a)||a.id.localeCompare(b.id));
- for(const it of list)if(addTo(st,it))return arr;return st;}
+// ordenar: categoria → subtipo (corpo a corpo antes de fogo, capacete, colete...) → o mesmo item junto → raridade (maior primeiro) → quantidade
+let IDX=null;
+function sortKey(it){const d=IT[it.id];if(!d)return[99,0,0,0,0];if(!IDX)IDX=Object.fromEntries(Object.keys(IT).map((k,i)=>[k,i]));
+ const CO=ICAT.findIndex(c=>c[0]===catOf(it.id)),sub=(d.w&&d.w.t==='g'?1:0)*100+(ORD[d.s]!=null?ORD[d.s]+1:50);
+ return[CO<0?98:CO,sub,IDX[it.id],-Math.max(-1,rOf(it)),-(it.q||1)];}
+function sortList(arr,n){const list=arr.filter(Boolean),st=new Array(n).fill(null),K=new Map(list.map(x=>[x,sortKey(x)]));
+ list.sort((a,b)=>{const A=K.get(a),B=K.get(b);for(let i=0;i<A.length;i++)if(A[i]!==B[i])return A[i]-B[i];return 0;});
+ for(const it of list){if(!IT[it.id]){const k=st.indexOf(null);if(k<0)return arr;st[k]=it;continue;}if(addTo(st,it))return arr;}return st;}
 function sortStash(){PROF.stash=sortList(PROF.stash,Math.max(stashCap(),PROF.stash.length));}
 // arruma no próprio array (a mochila tem tamanho fixo: junta pilhas e põe por categoria)
 function sortBag(arr){const st=sortList(arr,arr.length);if(st!==arr)arr.splice(0,arr.length,...st);}
